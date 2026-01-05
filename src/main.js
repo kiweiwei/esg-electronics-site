@@ -1,140 +1,168 @@
-/* ========= ESG 企業形象網站（電子業案例：Samsung Electronics） ========= */
+/* ===== 電子業 ESG 形象網站（內容加強版｜Samsung Electronics 案例） ===== */
 
-const root = document.getElementById("root");
+const $ = (s) => document.querySelector(s);
+const root = $("#root");
 
-/* ---------- 基本樣式（企業官網感） ---------- */
-const style = `
-<style>
-body{
-  margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:#0b1020;color:#eaf0ff;
-}
-header{
-  padding:80px 24px;
-  background:linear-gradient(120deg,#0b1020,#101a33);
-}
-section{padding:60px 24px;max-width:1100px;margin:auto}
-h1{font-size:42px;margin:0 0 16px}
-h2{font-size:28px;margin:0 0 12px}
-h3{font-size:18px;margin:0 0 8px}
-p{color:#b6c2ff;line-height:1.7}
-.grid{display:grid;gap:24px}
-.grid-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.card{
-  background:#101a33;border-radius:16px;padding:24px;
-  box-shadow:0 10px 40px rgba(0,0,0,.3)
-}
-.badge{display:inline-block;padding:6px 12px;border-radius:999px;
-  background:#1f2a55;color:#9cc3ff;font-size:12px;margin-bottom:8px}
-footer{
-  padding:40px 24px;color:#8892c7;font-size:13px;
-  border-top:1px solid rgba(255,255,255,.1)
-}
-</style>
+/* ---------- 樣式（維持你原本喜歡的那版） ---------- */
+const css = `
+:root{--bg:#0b1020;--card:#101a33;--text:#eaf0ff;--muted:#a9b5d6;--border:rgba(255,255,255,.12);--accent:#6ee7ff;--accent2:#a78bfa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system}
+.container{max-width:1100px;margin:auto;padding:24px}
+.header{position:sticky;top:0;background:#0b1020;border-bottom:1px solid var(--border)}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.nav button{background:none;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:999px;cursor:pointer}
+.nav button.active{color:var(--text);border-color:var(--accent)}
+.card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px}
+h1{margin:0 0 8px}
+h2{margin:0 0 12px}
+h3{margin:0 0 6px}
+p,li{color:var(--muted);line-height:1.7}
+.grid{display:grid;gap:16px}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.badge{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);margin-bottom:6px}
+.footer{font-size:12px;color:var(--muted);padding:24px}
 `;
 
-/* ---------- 首頁 ---------- */
-const hero = `
-<header>
-  <span class="badge">Electronic Industry ESG</span>
+/* ---------- 資料（電子業真實 ESG 公開方向整理） ---------- */
+const COMPANY = "Samsung Electronics";
+
+const ESG_OVERVIEW = `
+<p>${COMPANY} 為全球主要電子製造商之一，長期公開揭露其永續發展與 ESG 策略。
+電子業因高能耗、高供應鏈複雜度與快速產品汰換，被視為 ESG 管理高度關鍵的產業。</p >
+`;
+
+const ENV = `
+<ul>
+<li>設定 Scope 1 與 Scope 2 溫室氣體減量與淨零目標。</li>
+<li>大幅提升再生能源使用比例，包含太陽能與購電協議（PPA）。</li>
+<li>推動循環經濟，提升再生塑膠與回收材料於電子產品中的使用率。</li>
+<li>建立全球電子廢棄物回收計畫，減少環境衝擊。</li>
+</ul>
+`;
+
+const SOC = `
+<ul>
+<li>建立職業安全與健康管理系統，目標降低重大工安事故。</li>
+<li>進行供應鏈人權風險評估，符合國際人權準則。</li>
+<li>投資青年教育與科技人才培育計畫，強化社會影響力。</li>
+</ul>
+`;
+
+const GOV = `
+<ul>
+<li>董事會層級納入 ESG 風險與永續策略監督。</li>
+<li>建立供應商行為準則，實施第三方稽核。</li>
+<li>強化資訊揭露透明度，對齊國際永續揭露標準。</li>
+</ul>
+`;
+
+/* ---------- 各頁 ---------- */
+function home(){
+return `
+<div class="card">
   <h1>電子業 ESG 發展趨勢</h1>
-  <p>以 Samsung Electronics 公開永續資料為案例，呈現電子產業在環境、社會與公司治理（ESG）上的實際作為與趨勢。</p >
-</header>
+  <p class="badge">企業案例：${COMPANY}</p >
+  ${ESG_OVERVIEW}
+</div>
+<div class="grid grid-3">
+  <div class="card"><h3>Environment</h3>${ENV}</div>
+  <div class="card"><h3>Social</h3>${SOC}</div>
+  <div class="card"><h3>Governance</h3>${GOV}</div>
+</div>
 `;
+}
 
-/* ---------- ESG KPI ---------- */
-const kpi = `
-<section>
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>Environment</h3>
-      <p>擴大再生能源使用，設定 Scope 1 & 2 淨零目標，推動循環材料與電子廢棄物回收。</p >
+function req(){
+return `
+<div class="card">
+<h2>需求分析</h2>
+<ul>
+<li>清楚呈現電子業 ESG 發展方向與企業實際作為。</li>
+<li>提供非專業使用者可快速理解的結構化內容。</li>
+<li>作為課程作業與企業形象展示用途。</li>
+</ul>
+</div>
+<div class="card">
+<h3>利害關係人</h3>
+<ul>
+<li>投資人與研究人員</li>
+<li>學生與教育單位</li>
+<li>企業管理與永續團隊</li>
+</ul>
+</div>
+`;
+}
+
+function ana(){
+return `
+<div class="card">
+<h2>系統分析</h2>
+<ul>
+<li>資訊架構：首頁 → ESG 三面向 → 分析與規格</li>
+<li>資料來源：企業公開永續報告與官方揭露資料</li>
+<li>限制條件：靜態網站、不涉及即時後端資料</li>
+</ul>
+</div>
+`;
+}
+
+function spec(){
+return `
+<div class="card">
+<h2>系統設計（規格書）</h2>
+<ul>
+<li>模組：ESG 內容展示、導覽切換、版本足跡</li>
+<li>輸入：靜態 ESG 資料</li>
+<li>輸出：網頁視覺化內容</li>
+<li>驗收：可清楚辨識 E / S / G 與案例來源</li>
+</ul>
+</div>
+`;
+}
+
+function impl(){
+return `
+<div class="card">
+<h2>系統實作（版本數位足跡）</h2>
+<ul>
+<li>平台：GitHub Pages</li>
+<li>產業：電子業</li>
+<li>案例來源：${COMPANY} 公開永續資訊</li>
+<li>版本型態：靜態形象網站</li>
+</ul>
+</div>
+`;
+}
+
+/* ---------- Router ---------- */
+const html = `
+<style>${css}</style>
+<div class="header">
+  <div class="container">
+    <div class="brand"><div class="logo"></div><b>電子業 ESG 形象網站</b></div>
+    <div class="nav">
+      <button data-p="home" class="active">首頁</button>
+      <button data-p="req">需求分析</button>
+      <button data-p="ana">系統分析</button>
+      <button data-p="spec">規格書</button>
+      <button data-p="impl">系統實作</button>
     </div>
-    <div class="card">
-      <h3>Social</h3>
-      <p>強化人權與職業安全管理，投入青年教育與科技人才培育計畫。</p >
-    </div>
-    <div class="card">
-      <h3>Governance</h3>
-      <p>建立供應鏈責任制度，導入第三方稽核與董事會 ESG 風險監督。</p >
-    </div>
   </div>
-</section>
+</div>
+<main class="container" id="view"></main>
+<div class="footer container">資料來源：${COMPANY} 公開 ESG 永續資訊（教學展示用途）</div>
 `;
 
-/* ---------- 需求分析 ---------- */
-const requirements = `
-<section>
-  <h2>需求分析（Requirements Analysis）</h2>
-  <div class="card">
-    <h3>網站目標</h3>
-    <p>以形象網站方式呈現電子業 ESG 發展趨勢，讓非專業使用者能在短時間內理解企業永續策略。</p >
-  </div>
-  <div class="card">
-    <h3>利害關係人</h3>
-    <p>投資人、學生、研究人員、一般大眾、企業管理階層。</p >
-  </div>
-  <div class="card">
-    <h3>功能需求</h3>
-    <p>呈現 ESG 架構、企業案例、產業趨勢與永續績效摘要。</p >
-  </div>
-</section>
-`;
+root.innerHTML = html;
+const view = $("#view");
+const nav = document.querySelectorAll(".nav button");
 
-/* ---------- 系統分析 ---------- */
-const analysis = `
-<section>
-  <h2>系統分析（System Analysis）</h2>
-  <div class="card">
-    <h3>資訊架構</h3>
-    <p>首頁 → ESG 三大面向 → 企業案例 → 永續策略說明。</p >
-  </div>
-  <div class="card">
-    <h3>資料來源</h3>
-    <p>企業公開永續報告、官方新聞稿與國際 ESG 準則。</p >
-  </div>
-</section>
-`;
-
-/* ---------- 規格書 ---------- */
-const spec = `
-<section>
-  <h2>系統設計（規格書）</h2>
-  <div class="card">
-    <p><b>模組：</b> ESG 資訊展示</p >
-    <p><b>輸入：</b> 公開永續資料（文字/數據）</p >
-    <p><b>輸出：</b> 圖文化 ESG 內容</p >
-    <p><b>驗收條件：</b> 使用者可清楚分辨 E / S / G 內容</p >
-  </div>
-</section>
-`;
-
-/* ---------- 系統實作 ---------- */
-const implementation = `
-<section>
-  <h2>系統實作（Implementation & Footprint）</h2>
-  <div class="card">
-    <p>本網站為 GitHub Pages 靜態實作版本，適合用於 ESG 形象展示與教學示範。</p >
-    <p>版本資訊：</p >
-    <ul>
-      <li>Platform：GitHub Pages</li>
-      <li>Industry：Electronics</li>
-      <li>Case：Samsung Electronics</li>
-    </ul>
-  </div>
-</section>
-`;
-
-/* ---------- 組合 ---------- */
-root.innerHTML = `
-${style}
-${hero}
-${kpi}
-${requirements}
-${analysis}
-${spec}
-${implementation}
-<footer>
-  資料來源：Samsung Electronics 公開永續資訊（教育展示用途）
-</footer>
-`;
+function render(p){
+  nav.forEach(b=>b.classList.toggle("active",b.dataset.p===p));
+  view.innerHTML = {home,req,ana,spec,impl}[p]();
+}
+nav.forEach(b=>b.onclick=()=>render(b.dataset.p));
+render("home");
