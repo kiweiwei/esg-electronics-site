@@ -8,7 +8,43 @@
   <body>
     <div id="root">Loading…</div>
 
-    <!-- ✅ 關鍵：一定要指向 ./src/main.js -->
+    <script>
+  // 把 JS 錯誤直接顯示在畫面上（不用 Console）
+  window.addEventListener("error", function (e) {
+    const pre = document.createElement("pre");
+    pre.style.whiteSpace = "pre-wrap";
+    pre.style.padding = "12px";
+    pre.style.margin = "12px";
+    pre.style.border = "1px solid #f87171";
+    pre.style.borderRadius = "12px";
+    pre.style.background = "rgba(0,0,0,.2)";
+    pre.style.color = "#fecaca";
+    pre.textContent =
+      "JS ERROR:\n" +
+      (e.message || "unknown") +
+      "\n" +
+      (e.filename || "") +
+      ":" +
+      (e.lineno || "") +
+      ":" +
+      (e.colno || "") +
+      "\n";
+    document.body.prepend(pre);
+  });
+
+  window.addEventListener("unhandledrejection", function (e) {
+    const pre = document.createElement("pre");
+    pre.style.whiteSpace = "pre-wrap";
+    pre.style.padding = "12px";
+    pre.style.margin = "12px";
+    pre.style.border = "1px solid #fbbf24";
+    pre.style.borderRadius = "12px";
+    pre.style.background = "rgba(0,0,0,.2)";
+    pre.style.color = "#fde68a";
+    pre.textContent = "PROMISE ERROR:\n" + (e.reason?.message || e.reason || "unknown") + "\n";
+    document.body.prepend(pre);
+  });
+</script>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>
