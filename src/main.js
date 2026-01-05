@@ -579,69 +579,79 @@ function pageAna() {
 function pageReq() {
   return `
     <div class="hero">
-      <h1 class="h1">需求分析</h1>
-      <p class="lead">把「網站要做什麼」寫成可驗收的需求（功能/非功能），並對齊課程：ESG/SDGs + AI 融合。</p>
+      <h1 class="h1">需求分析（Requirements Analysis）</h1>
+      <p class="lead">
+        本需求分析以「電子業 ESG 重大性分析」為核心，
+        聚焦於如何將分散、非結構化的公開 ESG 資料，
+        轉化為可比較、可追溯、可支援決策的分析成果。
+      </p >
     </div>
 
     <div class="card">
-      <h3>行動目標（Action Goals）</h3>
+      <h3>一、問題背景與動機</h3>
       <ul>
-        <li>自動彙整與結構化公開 ESG 永續資料（報告PDF/官網/新聞稿）。</li>
-        <li>用 AI/NLP 進行分類、抽取與比較（公司/產業/年度/指標）。</li>
-        <li>輸出多維度洞察（趨勢、差距、成熟度、法規應對）。</li>
-        <li>把成果以「形象網站 + 規格書 + 足跡」呈現，便於驗收。</li>
+        <li>電子業 ESG 資訊高度分散於永續報告、官網、新聞與政策文件中。</li>
+        <li>資料多為 PDF 或文字描述，難以直接比較不同公司或年度。</li>
+        <li>投資人、研究者與管理者需要快速掌握「哪些 ESG 議題最重要」。</li>
+        <li>新法規（ISSB、CSRD）提升揭露一致性與可追溯性的需求。</li>
       </ul>
     </div>
 
     <div class="grid cols-2">
       <div class="card">
-        <h3>利害關係人（Stakeholders）</h3>
+        <h3>二、利害關係人（Stakeholders）</h3>
         <ul>
-          <li>老師/助教：驗收規格、流程設計、可追溯來源</li>
-          <li>同學/一般讀者：快速理解電子業 ESG</li>
-          <li>企業情境：投資人、客戶、供應商、員工、社區與主管機關</li>
+          <li><b>企業管理者：</b> 了解重大 ESG 風險與資源配置優先順序。</li>
+          <li><b>投資人 / 分析師：</b> 評估企業長期永續風險與價值。</li>
+          <li><b>研究者 / 學生：</b> 進行產業 ESG 趨勢與比較分析。</li>
+          <li><b>一般大眾：</b> 快速理解電子業永續發展重點。</li>
         </ul>
       </div>
+
       <div class="card">
-        <h3>使用情境（User Stories）</h3>
+        <h3>三、使用情境（Use Scenarios）</h3>
         <ul>
-          <li>3 分鐘看懂電子業 ESG：首頁趨勢 + 材料性議題</li>
-          <li>想研究：用洞察清單決定研究題目（跨年度/跨公司/跨指標）</li>
-          <li>想驗收：規格書表格 + 足跡匯出 JSON 作證據</li>
+          <li>比較同一電子公司不同年度的 ESG 承諾與執行進度。</li>
+          <li>分析電子業內不同公司在材料性議題上的策略差異。</li>
+          <li>對齊 GRI / SDGs / ISSB 指標，檢視揭露完整性。</li>
+          <li>支援課程期末作業：ESG 重大性分析 + 系統設計展示。</li>
         </ul>
       </div>
     </div>
 
     <div class="card">
-      <h3>功能需求（Functional Requirements）</h3>
+      <h3>四、功能性需求（Functional Requirements）</h3>
       <ul>
-        <li>呈現 E/S/G 主題、材料性議題、產業趨勢與案例資料來源。</li>
-        <li>呈現 AI/NLP 管線流程、角色設計、例外處理（文字版）。</li>
-        <li>提供結構化 schema（欄位/型別/用途）。</li>
-        <li>版本足跡：記錄瀏覽/操作、匯出 JSON、清除。</li>
+        <li>顯示電子業 ESG 重大性分析架構與議題清單。</li>
+        <li>支援多維度說明（產業、公司、年度、指標、法規）。</li>
+        <li>呈現 AI/NLP 分析流程與資料處理邏輯。</li>
+        <li>提供公開資料來源連結以利查核。</li>
+        <li>記錄使用行為並可匯出版本數位足跡（JSON）。</li>
       </ul>
     </div>
 
     <div class="card">
-      <h3>非功能需求（Non-functional Requirements）</h3>
-      <div class="divider"></div>
-      <table class="table">
-        <thead><tr><th style="width:120px">面向</th><th>要求</th></tr></thead>
-        <tbody>
-          ${NONFUNC.map((x) => `<tr><td>${x.k}</td><td>${x.v}</td></tr>`).join("")}
-        </tbody>
-      </table>
+      <h3>五、非功能性需求（Non-Functional Requirements）</h3>
+      <ul>
+        <li><b>可讀性：</b> 條列清楚、適合手機與電腦瀏覽。</li>
+        <li><b>可追溯性：</b> 重要分析需能回溯至原始公開資料。</li>
+        <li><b>一致性：</b> ESG 分類（E/S/G、主題）使用一致詞彙。</li>
+        <li><b>效能：</b> 純前端展示，避免不必要的載入延遲。</li>
+        <li><b>隱私：</b> 足跡資料僅存在使用者本機。</li>
+      </ul>
     </div>
 
     <div class="card">
-      <h3>成果定義（Deliverables）</h3>
+      <h3>六、成功準則與驗收（Success Criteria）</h3>
       <ul>
-        <li>形象網站（本頁）</li>
-        <li>需求分析/系統分析/規格書（可驗收）</li>
-        <li>版本足跡 JSON（可下載）</li>
-        <li>公開資料來源清單（可追溯）</li>
+        <li>使用者能清楚理解電子業 ESG 重大性分析的「分析方法」。</li>
+        <li>每一頁內容對應課程要求（需求→分析→設計→實作）。</li>
+        <li>可順利展示於 GitHub Pages 並提供可點擊網址。</li>
+        <li>版本足跡可匯出並作為實作證據。</li>
       </ul>
     </div>
+
+    ${sourcesBlock()}
   `;
 }
 
