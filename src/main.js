@@ -1,411 +1,274 @@
-/* ===== ESG 形象網站（電子業｜內容加長版｜保留原版UI + 足跡匯出） =====
-   案例公司：Samsung Electronics（公開永續報告/官方揭露/供應鏈稽核說明/ISSB標準）
-   內容定位：密度：多維度洞察 + 流程/角色/例外 + 規格書
+/* ===== ESG 形象網站（電子業）｜A-LongContent｜純前端、可直接 GitHub Pages =====
+   - 含：重大性分析（多維度）、需求分析、系統分析（流程/角色/例外/矩陣）、規格書、版本數位足跡
+   - 特色：不依賴框架，不會因為 React/Vite 沒 build 而空白
+   - 注意：index.html 需有 <div id="root"></div> 並載入 /src/main.js
 */
 
 const $ = (sel) => document.querySelector(sel);
 
-/* ========== 版本資訊 ========== */
+/* ==================== 版本資訊 ==================== */
 const SITE_VERSION = {
   app: "ESG-Electronics-Site",
   variant: "A-LongContent",
-  version: "1.3.0",
+  version: "1.4.0",
   buildTime: new Date().toISOString(),
-  note:
-    "GitHub Pages 靜態版；內容以公開資料彙整 + 方法論設計",
+  note: "GitHub Pages 靜態版：多維度重大性分析 + 系統分析/設計 + 版本數位足跡",
 };
 
-/* ========== 足跡（localStorage） ========== */
-const FP_KEY = "esg_site_footprint_v2";
-function getFootprint() {
-  try {
-    const raw = localStorage.getItem(FP_KEY);
-    if (!raw) return { pageviews: [], actions: [] };
-    const data = JSON.parse(raw);
-    if (!data || !Array.isArray(data.pageviews)) return { pageviews: [], actions: [] };
-    if (!Array.isArray(data.actions)) data.actions = [];
-    return data;
-  } catch {
-    return { pageviews: [], actions: [] };
-  }
-}
-function trackPage(path) {
-  const fp = getFootprint();
-  fp.pageviews.unshift({ path, at: new Date().toISOString() });
-  fp.pageviews = fp.pageviews.slice(0, 200);
-  localStorage.setItem(FP_KEY, JSON.stringify(fp));
-}
-function trackAction(type, payload = {}) {
-  const fp = getFootprint();
-  fp.actions.unshift({ type, payload, at: new Date().toISOString() });
-  fp.actions = fp.actions.slice(0, 200);
-  localStorage.setItem(FP_KEY, JSON.stringify(fp));
-}
-function clearFootprint() {
-  localStorage.removeItem(FP_KEY);
-}
-function exportFootprint() {
-  const fp = getFootprint();
-  const blob = new Blob([JSON.stringify({ meta: SITE_VERSION, ...fp }, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "esg_site_footprint.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/* ========== 公開資料來源 ========== */
-const SOURCES = [
-  {
-    title: "Samsung Electronics Sustainability Report 2025 (PDF)",
-    note:
-      "官方永續報告：包含淨零、再生能源、循環經濟、供應鏈等章節",
-    url: "https://www.samsung.com/global/sustainability/media/pdf/Samsung_Electronics_Sustainability_Report_2025_ENG.pdf",
-  },
-  {
-    title: "Samsung Newsroom：Releases 2025 Sustainability Report",
-    note:
-      "官方新聞稿：摘要重點（如 2030 Scope1/2 目標、再生能源轉換等方向）",
-    url: "https://news.samsung.com/global/samsung-electronics-releases-2025-sustainability-report",
-  },
-  {
-    title: "Samsung：Third-Party Audit（供應商第三方稽核說明）",
-    note:
-      "供應鏈盡職調查：依 RBA 標準做第三方稽核、改善與追蹤（用於G面/供應鏈章節）",
-    url: "https://www.samsung.com/global/sustainability/popup/popup_doc/AY5k3BUa1nsAIx-T/",
-  },
-  {
-    title: "Samsung Electronics Supplier Code of Conduct (PDF)",
-    note:
-      "供應商行為準則：環境/職安/人權/道德等要求（用於供應鏈治理）",
-    url: "https://www.samsung.com/global/sustainability/policy-file/AYVhO1mqBKQAIx95/Samsung_Electronics_Supplier_Code_of_Conduct_en.pdf",
-  },
-  {
-    title: "IFRS/ISSB：IFRS S1 General Requirements（標準概述）",
-    note:
-      "國際永續揭露基準（2024起適用）：一般永續風險/機會揭露要求",
-    url: "https://www.ifrs.org/issued-standards/ifrs-sustainability-standards-navigator/ifrs-s1-general-requirements/",
-  },
-  {
-    title: "IFRS/ISSB：IFRS S2 Climate-related Disclosures（標準概述）",
-    note:
-      "國際氣候揭露基準（2024起適用）：氣候風險/機會揭露要求",
-    url: "https://www.ifrs.org/issued-standards/ifrs-sustainability-standards-navigator/ifrs-s2-climate-related-disclosures/",
-  },
-];
-
-/* ========== 內容資料（「多」+「像Padlet」：可直接交） ========== */
-const INDUSTRY = {
-  name: "電子業（Electronics Industry）",
-  typicalRisks: [
-    "高能耗（製造/資料中心/供應鏈能源）",
-    "高供應鏈複雜度（多階供應商、人權/勞動風險、稽核成本）",
-    "材料與化學品管理（RoHS/REACH、溶劑、廢棄物、回收處理）",
-    "產品生命週期短（電子廢棄物、循環設計、回收系統）",
-    "資安與隱私（智慧裝置、資料處理、供應鏈資安）",
-  ],
-  typicalTrends: [
-    "淨零/減碳：Scope 1-3 管理、能源效率、再生能源、情境分析",
-    "水資源韌性：用水效率、再生水、供應鏈缺水風險",
-    "循環經濟：再生材料、可修復設計、回收與再利用",
-    "供應鏈盡職調查：RBA 稽核、供應商行為準則、整改與追蹤",
-    "揭露標準接軌：ISSB/IFRS S1/S2、TCFD/GRI/CSRD 等",
-  ],
-};
-
+/* ==================== 公開資料（示意） ==================== */
+/* 你要再加內容，就擴充這些資料陣列即可 */
 const MATERIALITY = [
-  { name: "氣候變遷與淨零（含 Scope 1-3）", impact: 5.0, concern: 4.9, cat: "E" },
-  { name: "再生能源（PPA/RECs/自建綠能）", impact: 4.8, concern: 4.6, cat: "E" },
-  { name: "循環經濟（回收、再生材料、電子廢棄物）", impact: 4.6, concern: 4.4, cat: "E" },
-  { name: "水資源韌性（缺水/再生水/回收）", impact: 4.5, concern: 4.1, cat: "E" },
-  { name: "供應鏈責任（人權/稽核/碳管理）", impact: 4.8, concern: 4.5, cat: "G" },
-  { name: "資安與隱私（IoT/資料治理）", impact: 4.3, concern: 4.7, cat: "G" },
-  { name: "資訊揭露與治理（董事會監督/風險管理）", impact: 4.2, concern: 4.2, cat: "G" },
-  { name: "職安衛與承攬管理", impact: 4.1, concern: 4.2, cat: "S" },
-  { name: "人才培育與DEI", impact: 3.9, concern: 4.0, cat: "S" },
+  { name: "再生能源使用與用電管理", impact: 4.8, concern: 4.6, cat: "E" },
+  { name: "溫室氣體排放（範疇 1/2/3）與淨零路徑", impact: 4.9, concern: 4.7, cat: "E" },
+  { name: "水資源使用與回收再利用", impact: 4.4, concern: 4.1, cat: "E" },
+  { name: "廢棄物/電子廢棄物與循環經濟", impact: 4.3, concern: 4.0, cat: "E" },
+  { name: "供應鏈管理與責任採購（RBA/人權）", impact: 4.7, concern: 4.5, cat: "S" },
+  { name: "職業安全衛生（OHS）與員工健康", impact: 4.1, concern: 4.2, cat: "S" },
+  { name: "多元共融、人才培育與留任", impact: 3.9, concern: 4.0, cat: "S" },
+  { name: "資安與隱私保護（Cybersecurity/Privacy）", impact: 4.6, concern: 4.8, cat: "G" },
+  { name: "公司治理、法遵與商業倫理", impact: 4.2, concern: 4.3, cat: "G" },
 ];
-
-const MULTI_DIM_INSIGHTS = [
-  "產業別 ESG 發展趨勢比較（電子/鋼鐵/水泥…）→ 本站聚焦電子業",
-  "公司歷年 ESG 揭露重點與目標追蹤（年度/部門/區域）",
-  "各項 ESG 指標（GRI/SDGs/ISSB/TCFD）揭露完整度與一致性檢查",
-  "ESG 指標與主題（創新、碳中和、職安、治理、資安）之關聯性分析",
-  "業界 ESG 成熟度分級（領先/成長/起步）與差距成因探究",
-  "永續目標/專案/計畫落實率（里程碑、成果、下一步）",
-  "第三方驗證/保證（Assurance）與外部意見/重大事件整理",
-  "新法規/新標準（ISSB/IFRS S1 S2、CSRD 等）應對措施彙整",
-  "投資人/ESG rating/永續指數市場回饋特點（可做延伸研究）",
-  "ESG 教育推廣/內部訓練/供應商培力案例彙整",
-  "用戶可自定義關鍵字/主題分類 → 自動歸類分析（系統規劃）",
-];
-
-const PIPELINE = [
-  {
-    step: "1. 自動化蒐集（Crawler/Connector）",
-    detail: [
-      "批量收集公開 ESG 永續報告（PDF/HTML/Word）與官方新聞稿",
-      "建立資料來源清單（公司官網/證交所/永續平台）與下載規則",
-      "版控：保存原始檔 hash、下載時間、來源URL（可追溯）",
-    ],
-  },
-  {
-    step: "2. 解析與抽取（Parser + OCR/LLM）",
-    detail: [
-      "PDF 文字抽取 + 圖表/表格辨識（必要時 OCR）",
-      "抽取：章節、指標表、目標承諾、專案內容、時間範圍",
-      "正規化：單位、年份、範圍（Scope 1/2/3）、地區/事業部",
-    ],
-  },
-  {
-    step: "3. AI/NLP 結構化（Classifier/Entity/Schema）",
-    detail: [
-      "分類：E/S/G、主題（淨零/水/循環/供應鏈/資安/人權/治理）",
-      "抽取：KPI 指標、目標值、進度敘述、風險與回應措施",
-      "對齊：GRI/SDGs/ISSB 對應（建立 mapping 表）",
-    ],
-  },
-  {
-    step: "4. 比較分析（Benchmark/Trend）",
-    detail: [
-      "跨年度：同公司不同年度目標/進度變化（trend）",
-      "跨公司：同產業不同公司揭露深度與策略比較（benchmark）",
-      "跨指標：議題與指標間關聯（例如：綠電→減排、循環→廢棄物）",
-    ],
-  },
-  {
-    step: "5. 視覺化與洞察輸出（Dashboard/Story）",
-    detail: [
-      "材料性矩陣、趨勢卡、KPI 卡、供應鏈稽核流程圖",
-      "洞察摘要（給老師/投資人/一般讀者不同版本）",
-      "輸出：網頁、PDF 摘要、JSON/CSV（可做進一步分析）",
-    ],
-  },
-];
-
-const BPMN = {
-  title: "BPMN/IDEF（文字版流程分解）",
-  blocks: [
-    {
-      name: "流程分解（Main Flow）",
-      items: [
-        "資料來源盤點 → 下載/更新 → 解析 → AI 抽取/分類 → 視覺化 → 洞察輸出",
-        "每一步都有：輸入/輸出/紀錄（log）/錯誤處理（exception）",
-      ],
-    },
-    {
-      name: "角色設計（Actors）",
-      items: [
-        "資料管理者：維護來源清單、版控規則",
-        "分析者：定義分類標籤、指標對齊、驗證結果",
-        "使用者（老師/同學/一般讀者）：瀏覽、下載、查詢",
-        "系統：排程、抽取、評估、輸出",
-      ],
-    },
-    {
-      name: "資料流呈現（Data Flow）",
-      items: [
-        "Raw（PDF/HTML）→ Parsed（文字/表格）→ Structured（JSON schema）→ Insight（摘要/圖表）",
-        "每層保存：來源、時間、版本、可追溯欄位",
-      ],
-    },
-    {
-      name: "控制/例外設計（Controls & Exceptions）",
-      items: [
-        "下載失敗：重試/備援來源/告警",
-        "解析失敗：OCR fallback/人工校正",
-        "分類不確定：信心分數/人工複核",
-        "資料衝突：保留原文片段 + 規則優先序",
-      ],
-    },
-  ],
-};
 
 const DATA_SCHEMA = [
-  { field: "doc_id", type: "string", desc: "文件唯一ID（hash/UUID）" },
   { field: "company", type: "string", desc: "公司名稱（例：Samsung Electronics）" },
-  { field: "year", type: "number", desc: "報告年度" },
-  { field: "source_url", type: "string", desc: "來源連結（可追溯）" },
-  { field: "section", type: "string", desc: "章節（E/S/G/治理/供應鏈…）" },
-  { field: "topic_tags", type: "string[]", desc: "主題標籤（淨零/綠電/循環/資安…）" },
-  { field: "kpi_name", type: "string", desc: "KPI 名稱（若有）" },
-  { field: "kpi_value", type: "string", desc: "KPI 值（保留原單位/原文）" },
-  { field: "target", type: "string", desc: "目標/承諾（文字）" },
-  { field: "progress", type: "string", desc: "進度/措施（文字）" },
-  { field: "assurance", type: "string", desc: "第三方驗證/保證（如有）" },
-  { field: "evidence_snippet", type: "string", desc: "原文摘要（可追溯用）" },
+  { field: "year", type: "number", desc: "年度（例：2024）" },
+  { field: "source_url", type: "string", desc: "公開來源 URL（報告/官網頁）" },
+  { field: "doc_type", type: "string", desc: "文件類型（PDF/HTML/News/Policy）" },
+  { field: "esg_cat", type: "string", desc: "E / S / G 分類" },
+  { field: "topic", type: "string", desc: "主題標籤（淨零/綠電/水/供應鏈/資安…）" },
+  { field: "kpi_name", type: "string", desc: "KPI 名稱（例：Renewable Energy %）" },
+  { field: "target", type: "string", desc: "目標（例：2030 RE 100%）" },
+  { field: "progress", type: "string", desc: "進度描述（文字或數值）" },
+  { field: "standard_map", type: "object", desc: "對應框架（GRI/SDGs/ISSB）" },
+  { field: "evidence_snippet", type: "string", desc: "可追溯證據片段（原文摘要）" },
+  { field: "confidence", type: "number", desc: "AI/NLP 抽取信心分數 0~1（低分→待複核）" },
 ];
 
 const SPEC_ROWS = [
   {
-    module: "導覽/資訊架構",
-    item: "分頁與長文呈現",
-    spec: "首頁/需求/分析/規格/實作分頁；每頁至少含多區塊卡片與條列",
-    accept: "每頁≥4個卡片區塊，且可切換",
+    module: "M1 重大性分析",
+    item: "多維度架構",
+    spec: "需清楚列出產業/公司/年度/指標/法規與外部評等等分析維度，並解釋用途。",
+    accept: "至少 5 個維度皆有具體條列與用途。",
   },
   {
-    module: "內容模組",
-    item: "多維度洞察清單",
-    spec: "提供多維度洞察（產業/公司/年度/指標/法規/評等）列表與可讀結構",
-    accept: "洞察清單≥10條且分類清楚",
+    module: "M1 重大性分析",
+    item: "議題清單",
+    spec: "列出電子業常見重大議題（E/S/G）並含 Impact×Concern 示意值。",
+    accept: "至少 8 個議題，含 E/S/G 分布。",
   },
   {
-    module: "流程設計",
-    item: "AI/NLP 管線 + BPMN/IDEF",
-    spec: "提供步驟分解、角色設計、資料流、例外控制（文字版）",
-    accept: "4大流程區塊齊全，且有條列",
+    module: "M2 系統分析",
+    item: "流程分解（文字版 BPMN/IDEF）",
+    spec: "流程需含輸入/輸出/角色/控制與例外；至少涵蓋資料蒐集→解析→分類→對齊→比較→展示。",
+    accept: "至少 6 個 step，且包含例外處理。",
   },
   {
-    module: "資料設計",
-    item: "結構化 Schema",
-    spec: "提供欄位、型別、用途（可做JSON輸出/資料庫）",
-    accept: "schema 欄位≥10個",
+    module: "M3 規格書",
+    item: "資料規格",
+    spec: "定義最小可用 schema（欄位/型別/說明）以支援可追溯性。",
+    accept: "至少 10 個欄位，含 source_url、evidence_snippet。",
   },
   {
-    module: "版本足跡",
-    item: "pageviews + actions",
-    spec: "記錄分頁瀏覽與操作；支援匯出 JSON / 清除",
-    accept: "可下載JSON，且含 meta/pageviews/actions",
+    module: "M4 來源",
+    item: "可追溯引用",
+    spec: "每份主要資料須可點擊開啟，並說明使用目的（報告/政策/標準）。",
+    accept: "至少 4 條來源，皆可開啟。",
   },
   {
-    module: "可追溯",
-    item: "公開資料來源列表",
-    spec: "列出官方來源（報告PDF/官方頁面/標準頁）供查核",
-    accept: "來源≥4條，含連結",
+    module: "M5 足跡",
+    item: "版本數位足跡",
+    spec: "記錄 pageviews/actions，支援匯出 JSON 與清除。",
+    accept: "可下載 JSON，內容含 meta/pageviews/actions。",
   },
 ];
 
-const NONFUNC = [
-  { k: "可用性", v: "手機/桌機皆可讀（RWD）" },
-  { k: "效能", v: "靜態頁，首次載入快；無後端依賴" },
-  { k: "可維護性", v: "內容以資料物件集中管理，分頁模板化" },
-  { k: "隱私", v: "足跡僅存在本機 localStorage，不蒐集個資" },
-  { k: "可追溯", v: "每個洞察可對應來源清單（URL/報告）" },
+const SOURCES = [
+  {
+    title: "Samsung Electronics Sustainability (公開永續資訊入口)",
+    url: "https://www.samsung.com/global/sustainability/",
+    note: "作為電子業公司公開 ESG 資料入口（政策/目標/報告）。",
+  },
+  {
+    title: "Samsung Electronics Sustainability Reports（報告清單頁）",
+    url: "https://www.samsung.com/global/sustainability/report/",
+    note: "可取得年度永續報告（PDF）作為揭露內容來源。",
+  },
+  {
+    title: "RBA (Responsible Business Alliance) 行為準則",
+    url: "https://www.responsiblebusiness.org/",
+    note: "電子供應鏈常用責任採購/人權/勞動標準參考。",
+  },
+  {
+    title: "ISSB（IFRS S1/S2）永續揭露準則入口",
+    url: "https://www.ifrs.org/issued-standards/ifrs-sustainability-standards-navigator/",
+    note: "用於對齊揭露框架（S1 一般揭露、S2 氣候相關揭露）。",
+  },
+  {
+    title: "GRI Standards",
+    url: "https://www.globalreporting.org/standards/",
+    note: "常見永續報告準則，用於指標對照。",
+  },
+  {
+    title: "UN SDGs",
+    url: "https://sdgs.un.org/goals",
+    note: "可將企業措施與 SDGs 對齊，做主題分類。",
+  },
 ];
 
-/* ========== UI ========== */
-const css = `
-:root{--bg:#0b1020;--card:#101a33;--text:#eaf0ff;--muted:#a9b5d6;--border:rgba(255,255,255,.12);--accent:#6ee7ff;--accent2:#a78bfa}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(1000px 600px at 10% 0%, rgba(110,231,255,.18), transparent 60%),radial-gradient(900px 600px at 90% 10%, rgba(167,139,250,.14), transparent 55%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-a{color:inherit}
-.container{max-width:1120px;margin:0 auto;padding:20px}
-.header{position:sticky;top:0;z-index:10;backdrop-filter:blur(14px);background:rgba(11,16,32,.70);border-bottom:1px solid var(--border)}
-.brand{display:flex;gap:12px;align-items:center;padding:14px 0}
-.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
-.title{font-weight:800}
-.subtitle{color:var(--muted);font-size:12px}
-.nav{display:flex;gap:10px;flex-wrap:wrap;padding:10px 0 16px}
-.nav button{border:1px solid var(--border);background:rgba(16,26,51,.55);color:var(--muted);padding:10px 12px;border-radius:999px;cursor:pointer}
-.nav button.active{color:var(--text);border-color:rgba(110,231,255,.35)}
-.hero{padding:26px 0 12px}
-.h1{font-size:34px;line-height:1.1;margin:0 0 8px}
-.lead{color:var(--muted);max-width:78ch;margin:0}
-.grid{display:grid;gap:14px}
-.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media(max-width:900px){.grid.cols-3,.grid.cols-2{grid-template-columns:1fr}}
-.card{border:1px solid var(--border);background:rgba(16,26,51,.55);border-radius:16px;padding:16px}
-.card h3{margin:0 0 8px;font-size:16px}
-.card p,li{color:var(--muted);line-height:1.65}
-.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:12px}
-.kpi{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.kpi .num{font-size:22px;font-weight:800}
-.kpi .cap{color:var(--muted);font-size:12px}
-.divider{height:1px;background:var(--border);margin:14px 0}
-.table{width:100%;border-collapse:collapse;font-size:13px}
-.table th,.table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
-.table th{text-align:left}
-.btn{cursor:pointer;border:1px solid var(--border);background:rgba(16,26,51,.55);color:var(--text);padding:10px 12px;border-radius:12px}
-.small{font-size:12px;color:var(--muted)}
-.tagE{color:#6ee7ff}.tagS{color:#34d399}.tagG{color:#a78bfa}
-details{border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 12px;background:rgba(16,26,51,.35)}
-details summary{cursor:pointer;color:var(--text);font-weight:700}
-details p{margin:8px 0 0}
-.footer{padding:22px 0 40px;color:var(--muted);font-size:12px}
-`;
+/* ==================== 足跡（localStorage） ==================== */
+const FP_KEY = "esg_site_footprint_v2";
 
-const shell = `
-<style>${css}</style>
-<div class="header">
-  <div class="container">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <div class="title">電子業 ESG 形象網站</div>
-        <div class="subtitle">需求分析 / 系統分析 / 系統設計（規格書） / 系統實作（版本數位足跡）｜案例：Samsung Electronics（公開資料）</div>
+function getFootprint() {
+  try {
+    const raw = localStorage.getItem(FP_KEY);
+    if (!raw) return { pageviews: [], actions: [], meta: {} };
+    const data = JSON.parse(raw);
+    if (!data.pageviews) data.pageviews = [];
+    if (!data.actions) data.actions = [];
+    if (!data.meta) data.meta = {};
+    return data;
+  } catch {
+    return { pageviews: [], actions: [], meta: {} };
+  }
+}
+
+function saveFootprint(fp) {
+  localStorage.setItem(FP_KEY, JSON.stringify(fp, null, 2));
+}
+
+function trackPageView(page) {
+  const fp = getFootprint();
+  fp.pageviews.push({
+    page,
+    ts: new Date().toISOString(),
+    ua: navigator.userAgent,
+  });
+  fp.meta = { ...SITE_VERSION, savedAt: new Date().toISOString() };
+  saveFootprint(fp);
+}
+
+function trackAction(type, detail = "") {
+  const fp = getFootprint();
+  fp.actions.push({
+    type,
+    detail,
+    ts: new Date().toISOString(),
+  });
+  fp.meta = { ...SITE_VERSION, savedAt: new Date().toISOString() };
+  saveFootprint(fp);
+}
+
+function downloadJSON(filename, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 500);
+}
+
+/* ==================== UI：樣式（內嵌，避免白頁） ==================== */
+function injectStyles() {
+  const css = `
+    :root{--bg:#0b1020;--card:#111a33;--card2:#0e1630;--txt:#e8eeff;--muted:#b7c1e6;--line:rgba(255,255,255,.12);--acc:#67e8f9;--acc2:#a78bfa;}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Noto Sans",sans-serif;background:linear-gradient(180deg,#060815,#0b1020);color:var(--txt)}
+    a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+    .wrap{max-width:1100px;margin:0 auto;padding:22px}
+    .topbar{position:sticky;top:0;background:rgba(6,8,21,.78);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:10}
+    .topbar .wrap{display:flex;gap:14px;align-items:center;justify-content:space-between}
+    .brand{display:flex;flex-direction:column;gap:2px}
+    .brand b{font-size:14px;letter-spacing:.4px}
+    .brand span{font-size:12px;color:var(--muted)}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--txt);padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+    .btn:hover{background:rgba(255,255,255,.07)}
+    .btn.primary{border-color:rgba(103,232,249,.35);box-shadow:0 0 0 1px rgba(103,232,249,.12) inset}
+    .hero{padding:18px 18px 10px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,rgba(103,232,249,.10),rgba(167,139,250,.08));margin-bottom:14px}
+    .h1{margin:0 0 6px;font-size:24px}
+    .lead{margin:0;color:var(--muted);line-height:1.55}
+    .grid{display:grid;gap:12px}
+    .cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media (max-width:880px){.cols-2{grid-template-columns:1fr}}
+    .card{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03);padding:14px}
+    .card h3{margin:0 0 10px;font-size:16px}
+    .small{font-size:12px;color:var(--muted)}
+    ul{margin:8px 0 0 18px;color:var(--txt);line-height:1.6}
+    li{margin:6px 0}
+    .divider{height:1px;background:var(--line);margin:12px 0}
+    .kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 14px}
+    @media (max-width:920px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    .pill{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.03)}
+    .pill b{display:block;font-size:13px}
+    .pill span{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.35}
+    .table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:14px}
+    .table th,.table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+    .table th{background:rgba(255,255,255,.05);text-align:left;font-size:13px}
+    .table td{font-size:13px;color:var(--txt)}
+    .table tr:last-child td{border-bottom:none}
+    details{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.03)}
+    summary{cursor:pointer;font-weight:700}
+    code{background:rgba(0,0,0,.25);padding:2px 6px;border-radius:8px}
+    .footer{color:var(--muted);font-size:12px;margin-top:16px}
+  `;
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+/* ==================== Shell（固定框架） ==================== */
+function shell(active) {
+  return `
+    <div class="topbar">
+      <div class="wrap">
+        <div class="brand">
+          <b>ESG 形象網站（電子業）</b>
+          <span>${SITE_VERSION.app} · ${SITE_VERSION.variant} · v${SITE_VERSION.version}</span>
+        </div>
+        <div class="nav">
+          ${navBtn("home", "重大性分析", active)}
+          ${navBtn("req", "需求分析", active)}
+          ${navBtn("ana", "系統分析", active)}
+          ${navBtn("spec", "規格書", active)}
+          ${navBtn("fp", "版本足跡", active)}
+        </div>
       </div>
     </div>
 
-    <div class="nav" id="nav">
-      <button data-page="home" class="active">首頁</button>
-      <button data-page="req">需求分析</button>
-      <button data-page="ana">系統分析</button>
-      <button data-page="spec">系統設計（規格書）</button>
-      <button data-page="impl">系統實作（版本足跡）</button>
-    </div>
-  </div>
-</div>
-<main class="container" id="view"></main>
-<footer class="container footer">
-  <div class="divider"></div>
-  <div>說明：本網站為課程作業展示。AI/NLP 自動化流程為系統設計規劃；本站以靜態頁呈現內容與方法論。</div>
-</footer>
-`;
-
-const root = $("#root");
-root.innerHTML = shell;
-
-const VIEW = $("#view");
-const NAV = $("#nav");
-
-function kpiCards() {
-  const cards = [
-    { title: "產業", value: "電子業", caption: "高能耗 + 高供應鏈複雜度 + 快速產品汰換" },
-    { title: "案例公司", value: "Samsung Electronics", caption: "公開永續報告、供應鏈稽核與政策揭露" },
-    { title: "方法論", value: "Crawler + AI/NLP", caption: "自動蒐集→抽取→分類→比較→視覺化" },
-  ];
-  return `
-    <div class="grid cols-3">
-      ${cards
-        .map(
-          (k) => `
-        <div class="card">
-          <div class="kpi">
-            <div>
-              <div class="cap">${k.title}</div>
-              <div class="num">${k.value}</div>
-            </div>
-            <span class="badge">概要</span>
-          </div>
-          <p>${k.caption}</p>
-        </div>
-      `
-        )
-        .join("")}
+    <div class="wrap" id="page"></div>
+    <div class="wrap footer">
+      <div>Build: ${SITE_VERSION.buildTime}</div>
+      <div>Note: ${SITE_VERSION.note}</div>
     </div>
   `;
 }
 
-function materialityList() {
+function navBtn(key, label, active) {
+  const cls = key === active ? "btn primary" : "btn";
+  return `<button class="${cls}" data-nav="${key}">${label}</button>`;
+}
+
+/* ==================== 公用區塊 ==================== */
+function kpiCards() {
   return `
-    <div class="card">
-      <h3>材料性議題（示意）</h3>
-      <p>用「衝擊（Impact）× 關注（Concern）」排序，示範電子業常見重大議題。</p>
-      <div class="divider"></div>
-      <ul>
-        ${MATERIALITY.map(
-          (m) => `
-          <li>
-            <span class="${m.cat === "E" ? "tagE" : m.cat === "S" ? "tagS" : "tagG"}">● ${m.cat}</span>
-            &nbsp;${m.name}
-            <span class="small">（衝擊 ${m.impact} / 關注 ${m.concern}）</span>
-          </li>
-        `
-        ).join("")}
-      </ul>
+    <div class="kpi">
+      <div class="pill">
+        <b>分析對象</b>
+        <span>電子業（公開 ESG 資料）<br/>公司示例：Samsung Electronics</span>
+      </div>
+      <div class="pill">
+        <b>核心方法</b>
+        <span>Materiality（Impact×Concern）<br/>多維度（產業/公司/年度/指標/法規）</span>
+      </div>
+      <div class="pill">
+        <b>對齊框架</b>
+        <span>GRI · SDGs · ISSB（IFRS S1/S2）<br/>供應鏈參考：RBA</span>
+      </div>
+      <div class="pill">
+        <b>可追溯性</b>
+        <span>公開來源連結 + 版本足跡（JSON）<br/>本機儲存、無個資</span>
+      </div>
     </div>
   `;
 }
@@ -414,95 +277,258 @@ function sourcesBlock() {
   return `
     <div class="card">
       <h3>公開資料來源（可追溯）</h3>
-      <p>老師若要查核，可直接點連結確認。本站內容以「方向/做法/方法論」呈現。</p>
-      <div class="divider"></div>
       <ul>
         ${SOURCES.map(
-          (s) => `
-          <li>
-            <div style="color:var(--text)"><b>${s.title}</b></div>
-            <div class="small">${s.note}</div>
-            <div class="small"><a href="${s.url}" target="_blank" rel="noreferrer">開啟來源</a></div>
-          </li>
-        `
+          (s) =>
+            `<li><b>${escapeHtml(s.title)}</b><br/><a href="${s.url}" target="_blank" rel="noreferrer">${s.url}</a><br/><span class="small">${escapeHtml(
+              s.note
+            )}</span></li>`
         ).join("")}
       </ul>
     </div>
   `;
 }
 
-/* ========== Pages ========== */
-function pageAna() {
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* ==================== Pages ==================== */
+function pageHome() {
   return `
     <div class="hero">
-      <h1 class="h1">系統分析（System Analysis）</h1>
+      <h1 class="h1">電子業 ESG 重大性分析（Materiality Analysis）</h1>
       <p class="lead">
-        依課程要求：以「自動化蒐集 + AI/NLP 結構化 + 多維度比較 + 視覺化展示」為核心，
-        以文字版 BPMN/IDEF（流程分解、角色設計、資料流、控制/例外）完成系統分析。
-      </p >
+        以「電子業」為產業背景，整合企業公開 ESG 永續資訊，建立可支援多維度洞察與決策的重大性分析架構。
+        分析維度涵蓋：產業、公司、年度、指標框架（GRI/SDGs/ISSB）、法規與外部評等等。
+      </p>
     </div>
+
+    ${kpiCards()}
 
     <div class="grid cols-2">
       <div class="card">
-        <h3>一、系統目標（輸入/處理/輸出）</h3>
+        <h3>一、重大性分析目的與核心問題</h3>
         <ul>
-          <li><b>輸入（Input）：</b> 企業公開 ESG 永續報告（PDF/HTML/Word）、官方新聞稿、政策頁面、供應鏈稽核/準則文件。</li>
-          <li><b>處理（Process）：</b> 解析抽取 → AI/NLP 分類/標籤 → 指標對齊（GRI/SDGs/ISSB）→ 比較分析（公司/產業/年度）→ 產生洞察。</li>
-          <li><b>輸出（Output）：</b> 網站（重大性分析+洞察+流程+規格）＋ 可匯出 JSON（版本數位足跡/分析結果格式）。</li>
+          <li>電子業在高能耗與高供應鏈複雜度下，哪些 ESG 議題最關鍵？</li>
+          <li>重大性排序是否會因公司、年度、揭露框架或法規而改變？</li>
+          <li>如何讓 ESG 資訊可比較、可追溯，支援管理/投資/研究決策？</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>二、多維度分析架構（對齊課程重點）</h3>
+        <ul>
+          <li><b>產業維度：</b>電子業特性（能耗/碳排/供應鏈/資安/電子廢棄物）。</li>
+          <li><b>公司維度：</b>比較不同公司揭露深度與策略定位。</li>
+          <li><b>年度維度：</b>追蹤目標、承諾與進度，做趨勢/差距分析。</li>
+          <li><b>指標維度：</b>對齊 GRI、SDGs、ISSB（IFRS S1/S2）提升可比性。</li>
+          <li><b>法規/市場：</b>納入 ISSB、CSRD 與投資人/ESG rating 關注焦點。</li>
         </ul>
       </div>
 
       <div class="card">
-        <h3>二、核心價值（為什麼要做系統）</h3>
+        <h3>三、電子業常見重大性議題（示意）</h3>
+        <p class="small">
+          以「企業衝擊程度（Impact）」與「利害關係人關注度（Concern）」為雙軸，辨識重大議題。
+        </p>
         <ul>
-          <li>ESG 報告多為非結構化文本，人工閱讀成本高、比較困難。</li>
-          <li>需要「可追溯」與「可重複」的抽取與分類流程，支援跨年度、跨公司比較。</li>
-          <li>對齊 ISSB/IFRS S1/S2 等標準，有助於把揭露要求轉成可檢核的資訊欄位。</li>
+          ${MATERIALITY.map(
+            (m) =>
+              `<li><b>${escapeHtml(m.name)}</b> <span class="small">（${m.cat}｜Impact ${m.impact} × Concern ${m.concern}）</span></li>`
+          ).join("")}
+        </ul>
+
+        <div class="divider"></div>
+
+        <h3>四、成熟度分級與差距分析</h3>
+        <ul>
+          <li><b>領先（Leader）：</b>有量化目標、年度追蹤與第三方驗證/保證。</li>
+          <li><b>成長（Follower）：</b>有政策與方向，但量化與追蹤仍在建立。</li>
+          <li><b>起步（Starter）：</b>多為定性揭露，尚未系統化管理。</li>
+          <li>可比較不同公司/年度在相同議題上的成熟度差距與原因。</li>
         </ul>
       </div>
     </div>
 
     <div class="card">
-      <h3>三、BPMN / IDEF（文字版）流程分解（Main Flow）</h3>
-      <div class="divider"></div>
+      <h3>五、AI / NLP 輔助重大性分析（系統規劃概念）</h3>
+      <ul>
+        <li>自動蒐集 ESG 報告（PDF/HTML）與政策/新聞資料，保留來源與下載時間（可追溯）。</li>
+        <li>NLP 抽取：目標、KPI、措施、風險與治理文字，並分類 E/S/G 與主題標籤。</li>
+        <li>建立 mapping：主題標籤 ↔ GRI/SDGs/ISSB，支援跨框架比較。</li>
+        <li>輸出洞察：重大性排序、成熟度分級、趨勢追蹤、缺口與改善建議。</li>
+      </ul>
+    </div>
+
+    ${sourcesBlock()}
+  `;
+}
+
+function pageReq() {
+  return `
+    <div class="hero">
+      <h1 class="h1">需求分析（Requirements Analysis）</h1>
+      <p class="lead">
+        目標：將分散、非結構化的公開 ESG 資料，轉化為可比較、可追溯、可支援決策的重大性分析成果，
+        並用形象網站方式呈現（符合期末作業要求）。
+      </p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>一、背景與痛點</h3>
+        <ul>
+          <li>ESG 報告多為 PDF/文字，人工閱讀成本高。</li>
+          <li>不同公司/年度揭露格式不同，難以直接比較。</li>
+          <li>需要明確方法論：材料性（Impact×Concern）＋ 多維度對照。</li>
+          <li>新法規（ISSB/CSRD）提升可追溯/一致揭露的需求。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>二、利害關係人與使用情境</h3>
+        <ul>
+          <li><b>企業管理者：</b>判斷重大議題優先順序、資源配置。</li>
+          <li><b>投資人/分析師：</b>掌握永續風險與長期價值。</li>
+          <li><b>研究者/學生：</b>做產業 ESG 趨勢與比較分析。</li>
+          <li><b>一般大眾：</b>快速理解電子業永續重點。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>三、功能性需求（Functional）</h3>
+      <ul>
+        <li>顯示重大性分析架構（產業/公司/年度/指標/法規/市場）。</li>
+        <li>列出重大議題清單與 Impact×Concern 示意值。</li>
+        <li>呈現系統分析流程（自動化蒐集→AI/NLP→對齊→比較→展示）。</li>
+        <li>提供公開資料來源連結。</li>
+        <li>版本數位足跡：記錄瀏覽/操作並可匯出 JSON。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>四、非功能性需求（Non-Functional）</h3>
+      <ul>
+        <li><b>可讀性：</b>手機/電腦皆可閱讀，段落清楚。</li>
+        <li><b>可追溯性：</b>重要敘述能回到公開來源。</li>
+        <li><b>一致性：</b>分類與用語一致（E/S/G、主題）。</li>
+        <li><b>隱私：</b>足跡僅存本機 localStorage，不含個資。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>五、成功準則（驗收）</h3>
+      <ul>
+        <li>網站可在 GitHub Pages 正常開啟、導覽正常。</li>
+        <li>每個章節清楚對應期末要求：需求/分析/設計/實作。</li>
+        <li>足跡可匯出 JSON 作為版本數位足跡證據。</li>
+      </ul>
+    </div>
+
+    ${sourcesBlock()}
+  `;
+}
+
+function pageAna() {
+  return `
+    <div class="hero">
+      <h1 class="h1">系統分析（System Analysis）</h1>
+      <p class="lead">
+        依課程方向：「自動化蒐集公開 ESG 資料 → AI/NLP 結構化 → 多維度比較 → 視覺化呈現」。
+        下列以文字版 BPMN/IDEF 呈現流程分解、角色、資料流與例外控制。
+      </p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>一、系統目標（Input / Process / Output）</h3>
+        <ul>
+          <li><b>Input：</b>永續報告（PDF）、官網 ESG 頁面、政策/供應鏈文件、新聞稿。</li>
+          <li><b>Process：</b>解析抽取 → NLP 分類/標籤 → 指標對齊（GRI/SDGs/ISSB）→ 比較分析。</li>
+          <li><b>Output：</b>重大性洞察頁、流程/規格展示頁、足跡 JSON。</li>
+        </ul>
+
+        <div class="divider"></div>
+        <h3>二、角色設計（Actors）</h3>
+        <ul>
+          <li><b>資料管理者：</b>維護來源清單、版本控管。</li>
+          <li><b>分析者：</b>定義標籤、mapping、抽樣驗證。</li>
+          <li><b>使用者：</b>瀏覽洞察、查核來源、下載足跡。</li>
+          <li><b>系統：</b>排程、解析、分類、輸出。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>三、分析維度矩陣（多維度洞察核心）</h3>
+        <table class="table">
+          <thead><tr><th style="width:160px">維度</th><th>內容</th><th>洞察輸出</th></tr></thead>
+          <tbody>
+            <tr><td>產業</td><td>電子業：能耗/碳排/供應鏈/資安/電子廢棄物</td><td>產業關鍵風險與差異</td></tr>
+            <tr><td>公司</td><td>策略、政策、目標、揭露深度</td><td>企業定位與策略差異</td></tr>
+            <tr><td>年度</td><td>歷年目標/進度/成效</td><td>趨勢追蹤、落差原因</td></tr>
+            <tr><td>指標</td><td>GRI/SDGs/ISSB 對照</td><td>一致性/缺口/可比性</td></tr>
+            <tr><td>法規/市場</td><td>ISSB/CSRD、ESG rating、投資人關注</td><td>合規風險與回應策略</td></tr>
+          </tbody>
+        </table>
+
+        <div class="divider"></div>
+        <h3>四、控制/例外（Exceptions）</h3>
+        <ul>
+          <li>下載失敗：重試、記錄錯誤碼、切換備援來源。</li>
+          <li>解析失敗：標記待人工校正，保留原檔。</li>
+          <li>分類不確定：信心分數低 → 進入人工複核。</li>
+          <li>資料衝突：保留 evidence_snippet + 優先序規則。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>五、文字版 BPMN / IDEF 流程分解（Main Flow）</h3>
 
       <details open>
         <summary>Step 1：資料蒐集（Crawler / Connector）</summary>
         <ul>
-          <li>建立「來源清單」（公司官網永續頁、報告PDF、新聞稿、政策文件）。</li>
-          <li>定期檢查更新（按年度/季度），保存原始檔與來源 URL（可追溯）。</li>
-          <li>輸出：Raw 資料庫（PDF/HTML）＋ metadata（公司/年度/來源/下載時間）。</li>
+          <li>建立來源清單（報告頁、PDF、政策頁、新聞稿）。</li>
+          <li>保存 metadata：公司/年度/來源/下載時間/檔案雜湊（可追溯）。</li>
+          <li>輸出 Raw：PDF/HTML 原始檔。</li>
         </ul>
       </details>
 
       <div style="height:10px"></div>
 
       <details>
-        <summary>Step 2：解析抽取（Parser / Table Extraction）</summary>
+        <summary>Step 2：解析抽取（Parser）</summary>
         <ul>
-          <li>PDF 文字抽取、章節定位、表格與圖表說明抓取。</li>
-          <li>抽取目標：ESG 目標承諾、KPI 指標、措施、風險與治理描述。</li>
-          <li>輸出：Parsed 文本 + 表格結構。</li>
+          <li>抽取章節/表格/文字段落（目標、KPI、措施、風險、治理）。</li>
+          <li>輸出 Parsed：結構化片段 + evidence_snippet。</li>
         </ul>
       </details>
 
       <div style="height:10px"></div>
 
       <details>
-        <summary>Step 3：AI/NLP 結構化（Classification / Tagging）</summary>
+        <summary>Step 3：AI/NLP 分類與標籤（Classification / Tagging）</summary>
         <ul>
-          <li>分類：E/S/G、主題標籤（淨零/綠電/水資源/循環/供應鏈/資安/人權/職安/治理）。</li>
-          <li>抽取：KPI 名稱、目標、時間範圍、進度描述、區域/事業部。</li>
+          <li>分類：E/S/G；主題：淨零/綠電/水/循環/供應鏈/資安/職安/治理。</li>
+          <li>抽取：kpi_name、target、progress、year、region 等欄位。</li>
+          <li>信心分數：低分 → 待複核清單。</li>
         </ul>
       </details>
 
       <div style="height:10px"></div>
 
       <details>
-        <summary>Step 4：對齊標準（GRI / SDGs / ISSB 對照）</summary>
+        <summary>Step 4：標準對齊（GRI / SDGs / ISSB mapping）</summary>
         <ul>
-          <li>建立 mapping 表：主題標籤 ↔ 指標框架（GRI、SDGs、ISSB）。</li>
-          <li>輸出：每則資訊包含「標準對應欄位」與「證據片段」以利查核。</li>
+          <li>建立 mapping 表（主題 ↔ GRI/SDGs/ISSB）。</li>
+          <li>輸出 standard_map，提升跨公司/跨年度可比性。</li>
         </ul>
       </details>
 
@@ -511,219 +537,18 @@ function pageAna() {
       <details>
         <summary>Step 5：多維度比較分析（Industry / Company / Year / Indicator）</summary>
         <ul>
-          <li>產業比較：電子 vs 其他產業。</li>
-          <li>公司比較：同產業企業之揭露深度、策略差異。</li>
-          <li>年度追蹤：目標與進度的變化（趨勢/落差/原因）。</li>
-          <li>輸出：洞察摘要、材料性排序、成熟度分級結果。</li>
+          <li>產出：重大性排序、成熟度分級、趨勢追蹤與缺口摘要。</li>
         </ul>
       </details>
 
       <div style="height:10px"></div>
 
       <details>
-        <summary>Step 6：視覺化與展示（Website / Dashboard）</summary>
+        <summary>Step 6：視覺化展示（Website / Dashboard）</summary>
         <ul>
-          <li>以形象網站呈現：重大性分析、多維洞察、流程/規格、資料來源。</li>
-          <li>提供匯出：足跡 JSON。</li>
+          <li>在網站上呈現洞察、流程、規格、來源與足跡。</li>
         </ul>
       </details>
-    </div>
-
-    <div class="grid cols-2">
-      <div class="card">
-        <h3>四、角色設計（Actors / Responsibilities）</h3>
-        <ul>
-          <li><b>資料管理者：</b> 維護來源清單、下載規則、版本控管。</li>
-          <li><b>分析者：</b> 定義標籤、對齊標準、抽樣驗證結果。</li>
-          <li><b>使用者：</b> 瀏覽洞察、檢視來源、下載匯出檔。</li>
-          <li><b>系統：</b> 排程、解析、分類、比對、輸出。</li>
-        </ul>
-
-        <div class="divider"></div>
-        <h3>五、控制與例外（Controls / Exceptions）</h3>
-        <ul>
-          <li>下載失敗：重試、改用備援來源、記錄錯誤碼。</li>
-          <li>解析失敗：OCR fallback / 或標記人工校正。</li>
-          <li>分類不確定：信心分數低→進入人工複核清單。</li>
-          <li>資料衝突：保留原文片段 + 欄位優先序規則。</li>
-        </ul>
-      </div>
-
-      <div class="card">
-        <h3>六、分析維度矩陣</h3>
-        <div class="divider"></div>
-        <table class="table">
-          <thead><tr><th style="width:160px">維度</th><th>內容</th><th>可產出洞察</th></tr></thead>
-          <tbody>
-            <tr><td>產業（Industry）</td><td>電子業特性：能耗、供應鏈、電子廢棄物、資安</td><td>與其他產業的差異與關鍵風險</td></tr>
-            <tr><td>公司（Company）</td><td>公開報告揭露策略、政策、目標與措施</td><td>企業定位、策略差異、揭露完整度</td></tr>
-            <tr><td>年度（Year）</td><td>同公司跨年度目標/進度/成效</td><td>趨勢追蹤、落差原因、成熟度變化</td></tr>
-            <tr><td>指標（Indicator）</td><td>GRI/SDGs/ISSB 對照</td><td>揭露一致性、缺口分析、可比性提升</td></tr>
-            <tr><td>法規/市場</td><td>ISSB/CSRD/投資人關注與ESG評等</td><td>合規風險、回應策略、溝通重點</td></tr>
-          </tbody>
-        </table>
-
-        <div class="divider"></div>
-        <h3>七、資料治理（Data Governance）</h3>
-        <ul>
-          <li>可追溯：每筆結構化資訊保留 source_url + evidence_snippet。</li>
-          <li>版本控管：來源檔 hash、下載時間、解析版本。</li>
-          <li>品質控管：抽樣複核、錯誤回饋、標籤一致性檢查。</li>
-        </ul>
-      </div>
-    </div>
-
-    ${sourcesBlock()}
-  `;
-}
-function pageReq() {
-  return `
-    <div class="hero">
-      <h1 class="h1">需求分析（Requirements Analysis）</h1>
-      <p class="lead">
-        本需求分析以「電子業 ESG 重大性分析」為核心，
-        聚焦於如何將分散、非結構化的公開 ESG 資料，
-        轉化為可比較、可追溯、可支援決策的分析成果。
-      </p >
-    </div>
-
-    <div class="card">
-      <h3>一、問題背景與動機</h3>
-      <ul>
-        <li>電子業 ESG 資訊高度分散於永續報告、官網、新聞與政策文件中。</li>
-        <li>資料多為 PDF 或文字描述，難以直接比較不同公司或年度。</li>
-        <li>投資人、研究者與管理者需要快速掌握「哪些 ESG 議題最重要」。</li>
-        <li>新法規（ISSB、CSRD）提升揭露一致性與可追溯性的需求。</li>
-      </ul>
-    </div>
-
-    <div class="grid cols-2">
-      <div class="card">
-        <h3>二、利害關係人（Stakeholders）</h3>
-        <ul>
-          <li><b>企業管理者：</b> 了解重大 ESG 風險與資源配置優先順序。</li>
-          <li><b>投資人 / 分析師：</b> 評估企業長期永續風險與價值。</li>
-          <li><b>研究者 / 學生：</b> 進行產業 ESG 趨勢與比較分析。</li>
-          <li><b>一般大眾：</b> 快速理解電子業永續發展重點。</li>
-        </ul>
-      </div>
-
-      <div class="card">
-        <h3>三、使用情境（Use Scenarios）</h3>
-        <ul>
-          <li>比較同一電子公司不同年度的 ESG 承諾與執行進度。</li>
-          <li>分析電子業內不同公司在材料性議題上的策略差異。</li>
-          <li>對齊 GRI / SDGs / ISSB 指標，檢視揭露完整性。</li>
-          <li>支援課程期末作業：ESG 重大性分析 + 系統設計展示。</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>四、功能性需求（Functional Requirements）</h3>
-      <ul>
-        <li>顯示電子業 ESG 重大性分析架構與議題清單。</li>
-        <li>支援多維度說明（產業、公司、年度、指標、法規）。</li>
-        <li>呈現 AI/NLP 分析流程與資料處理邏輯。</li>
-        <li>提供公開資料來源連結以利查核。</li>
-        <li>記錄使用行為並可匯出版本數位足跡（JSON）。</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3>五、非功能性需求（Non-Functional Requirements）</h3>
-      <ul>
-        <li><b>可讀性：</b> 條列清楚、適合手機與電腦瀏覽。</li>
-        <li><b>可追溯性：</b> 重要分析需能回溯至原始公開資料。</li>
-        <li><b>一致性：</b> ESG 分類（E/S/G、主題）使用一致詞彙。</li>
-        <li><b>效能：</b> 純前端展示，避免不必要的載入延遲。</li>
-        <li><b>隱私：</b> 足跡資料僅存在使用者本機。</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3>六、成功準則與驗收（Success Criteria）</h3>
-      <ul>
-        <li>使用者能清楚理解電子業 ESG 重大性分析的「分析方法」。</li>
-        <li>每一頁內容對應課程要求（需求→分析→設計→實作）。</li>
-        <li>可順利展示於 GitHub Pages 並提供可點擊網址。</li>
-        <li>版本足跡可匯出並作為實作證據。</li>
-      </ul>
-    </div>
-
-    ${sourcesBlock()}
-  `;
-}
-
-function pageAna() {
-  return `
-    <div class="hero">
-      <h1 class="h1">系統分析</h1>
-      <p class="lead">把「怎麼做」講清楚：資料流、AI/NLP 管線、BPMN/IDEF、角色與例外控制。</p>
-    </div>
-
-    <div class="card">
-      <h3>系統目標（System Goal）</h3>
-      <ul>
-        <li>輸入：公開 ESG 報告/官網/新聞稿（PDF/HTML/Word）</li>
-        <li>處理：解析→抽取→分類→比對→產生洞察</li>
-        <li>輸出：網站內容（卡片/清單/流程/規格/來源）＋資料匯出（JSON）</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3>AI/NLP 自動化流程（Pipeline）</h3>
-      <div class="divider"></div>
-      ${PIPELINE.map(
-        (p) => `
-        <details>
-          <summary>${p.step}</summary>
-          <ul>${p.detail.map((d) => `<li>${d}</li>`).join("")}</ul>
-        </details>
-        <div style="height:10px"></div>
-      `
-      ).join("")}
-    </div>
-
-    <div class="grid cols-2">
-      <div class="card">
-        <h3>${BPMN.title}</h3>
-        ${BPMN.blocks
-          .map(
-            (b) => `
-          <details>
-            <summary>${b.name}</summary>
-            <ul>${b.items.map((x) => `<li>${x}</li>`).join("")}</ul>
-          </details>
-          <div style="height:10px"></div>
-        `
-          )
-          .join("")}
-      </div>
-
-      <div class="card">
-        <h3>標準/法規接軌（Disclosure Standards）</h3>
-        <p>電子業 ESG 需要同時面對「企業揭露」與「投資人/法規」要求。此處示範把 ISSB/IFRS S1/S2 納入規劃。</p>
-        <ul>
-          <li>IFRS S1：一般永續風險/機會揭露基準（2024 起適用）。</li>
-          <li>IFRS S2：氣候相關揭露基準（2024 起適用）。</li>
-          <li>可延伸：TCFD、GRI、SDGs、CSRD（依課程/地區要求）</li>
-        </ul>
-        <div class="divider"></div>
-        <p class="small">（這裡是「方法論」：不是要你把每個標準背起來，而是展示你知道該如何對齊。）</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>結構化資料設計（JSON Schema 草案）</h3>
-      <p>為了讓 AI/NLP 結果可查核、可比較、可視覺化，需要一個最小可用 schema。</p>
-      <div class="divider"></div>
-      <table class="table">
-        <thead><tr><th style="width:160px">欄位</th><th style="width:110px">型別</th><th>用途</th></tr></thead>
-        <tbody>
-          ${DATA_SCHEMA.map((r) => `<tr><td>${r.field}</td><td>${r.type}</td><td>${r.desc}</td></tr>`).join("")}
-        </tbody>
-      </table>
     </div>
 
     ${sourcesBlock()}
@@ -735,69 +560,40 @@ function pageSpec() {
     <div class="hero">
       <h1 class="h1">系統設計（規格書｜Spec）</h1>
       <p class="lead">
-        本規格書以「可驗收」為核心：每個模組都定義輸入/輸出、規格、驗收條件、測試案例與品質要求，
-        對齊期末考：需求分析、系統分析、系統設計、系統實作。
-      </p >
+        以「可驗收」為核心：定義模組、資料規格、功能規格、驗收條件與測試案例，
+        讓期末作業具備完整專案文件格式。
+      </p>
     </div>
 
     <div class="card">
-      <h3>一、系統模組清單（Modules）</h3>
+      <h3>一、系統模組（Modules）</h3>
       <ul>
-        <li><b>M1：重大性分析展示</b>（多維度架構 + 材料性議題清單 + 成熟度分級）</li>
-        <li><b>M2：產業/公司/年度/指標維度說明</b>（維度矩陣 + 可產出洞察）</li>
-        <li><b>M3：AI/NLP 流程展示</b>（Pipeline + BPMN/IDEF 文字版）</li>
-        <li><b>M4：可追溯來源</b>（公開資料來源連結 + 說明）</li>
-        <li><b>M5：版本數位足跡</b>（pageviews/actions + JSON 匯出）</li>
+        <li><b>M1 重大性分析展示：</b>多維度架構、議題清單、成熟度分級。</li>
+        <li><b>M2 系統分析展示：</b>流程分解、角色設計、例外控制、維度矩陣。</li>
+        <li><b>M3 規格書：</b>資料 schema、功能規格、驗收與測試。</li>
+        <li><b>M4 公開資料來源：</b>可點擊連結與用途說明。</li>
+        <li><b>M5 版本數位足跡：</b>pageviews/actions 匯出 JSON。</li>
       </ul>
     </div>
 
     <div class="card">
-      <h3>二、資料規格（Data Spec：最小可用 Schema）</h3>
-      <p>用於「從公開報告 → 結構化」的資料欄位定義。</p >
-      <div class="divider"></div>
+      <h3>二、資料規格（Data Schema）</h3>
       <table class="table">
         <thead><tr><th style="width:160px">欄位</th><th style="width:110px">型別</th><th>說明</th></tr></thead>
         <tbody>
-          ${DATA_SCHEMA.map((r) => `<tr><td>${r.field}</td><td>${r.type}</td><td>${r.desc}</td></tr>`).join("")}
+          ${DATA_SCHEMA.map((r) => `<tr><td>${escapeHtml(r.field)}</td><td>${escapeHtml(r.type)}</td><td>${escapeHtml(r.desc)}</td></tr>`).join("")}
         </tbody>
       </table>
     </div>
 
     <div class="card">
       <h3>三、功能規格與驗收（Functional Spec & Acceptance）</h3>
-      <div class="divider"></div>
       <table class="table">
-        <thead>
-          <tr>
-            <th style="width:150px">模組</th>
-            <th style="width:170px">項目</th>
-            <th>規格描述</th>
-            <th>驗收條件</th>
-          </tr>
-        </thead>
+        <thead><tr><th style="width:160px">模組</th><th style="width:170px">項目</th><th>規格</th><th>驗收</th></tr></thead>
         <tbody>
           ${SPEC_ROWS.map(
-            (r) => `
-            <tr>
-              <td>${r.module}</td>
-              <td>${r.item}</td>
-              <td>${r.spec}</td>
-              <td>${r.accept}</td>
-            </tr>
-          `
+            (r) => `<tr><td>${escapeHtml(r.module)}</td><td>${escapeHtml(r.item)}</td><td>${escapeHtml(r.spec)}</td><td>${escapeHtml(r.accept)}</td></tr>`
           ).join("")}
-          <tr>
-            <td>分析內容</td>
-            <td>重大性分析多維度</td>
-            <td>頁面需明確呈現：產業/公司/年度/指標/法規/外部評等之分析架構與應用</td>
-            <td>至少 5 個維度皆有具體條列與用途</td>
-          </tr>
-          <tr>
-            <td>流程設計</td>
-            <td>IDEF/UML/BPMN（文字版）</td>
-            <td>流程分解需包含：步驟、輸入/輸出、角色、控制/例外</td>
-            <td>4 個流程區塊以上（含例外）</td>
-          </tr>
         </tbody>
       </table>
     </div>
@@ -806,145 +602,144 @@ function pageSpec() {
       <div class="card">
         <h3>四、測試案例（Test Cases）</h3>
         <ul>
-          <li><b>TC-01</b>：分頁切換正常；每頁至少 4 個內容區塊。</li>
-          <li><b>TC-02</b>：來源連結可開啟；來源條目 ≥ 4。</li>
-          <li><b>TC-03</b>：足跡頁可匯出 JSON，且檔內含 meta/pageviews/actions。</li>
-          <li><b>TC-04</b>：清除足跡後，pageviews/actions 重新計數。</li>
-          <li><b>TC-05</b>：Pipeline/BPMN 區塊可展開閱讀。</li>
+          <li><b>TC-01</b>：導覽可切換到所有分頁且不白屏。</li>
+          <li><b>TC-02</b>：公開來源連結可開啟（新分頁）。</li>
+          <li><b>TC-03</b>：足跡可下載 JSON，含 meta/pageviews/actions。</li>
+          <li><b>TC-04</b>：清除足跡後重新計數。</li>
+          <li><b>TC-05</b>：內容在手機可閱讀、條列完整。</li>
         </ul>
       </div>
 
       <div class="card">
         <h3>五、系統品質（Quality）</h3>
         <ul>
-          <li><b>可讀性：</b> 條列清楚、段落分區、手機可閱讀。</li>
-          <li><b>可追溯性：</b> 重要敘述對應公開來源連結。</li>
-          <li><b>一致性：</b> 標籤（E/S/G、主題）使用一致字彙。</li>
-          <li><b>可維護性：</b> 內容以資料物件集中管理，後續新增公司/產業方便。</li>
-          <li><b>隱私：</b> 足跡只存本機，不含個資。</li>
+          <li><b>可讀性：</b>段落分區、條列清楚。</li>
+          <li><b>可追溯性：</b>來源 URL 可點擊，敘述可回溯。</li>
+          <li><b>一致性：</b>E/S/G 與主題標籤一致。</li>
+          <li><b>可維護性：</b>資料集中在陣列（MATERIALITY/SOURCES）便於擴充。</li>
+          <li><b>隱私：</b>足跡只存本機。</li>
         </ul>
       </div>
     </div>
 
     <div class="card">
-      <h3>六、延伸功能</h3>
+      <h3>六、延伸功能（加分但不必實作）</h3>
       <ul>
-        <li>支援多公司切換（Samsung / TSMC / Intel）並做 benchmark。</li>
-        <li>把重大性矩陣做成互動散點圖（Impact × Concern）。</li>
-        <li>加入「外部評等」欄位（ESG rating / 永續指數）做比較視覺化。</li>
-        <li>加入「法規對照表」：ISSB S1/S2 → 站內欄位 → 證據片段。</li>
+        <li>加入互動散點圖（Impact × Concern）。</li>
+        <li>加入多公司切換（Samsung/TSMC/Intel）做 benchmark。</li>
+        <li>加入 ISSB/CSRD 對照表（站內欄位 ↔ 條文 ↔ 證據片段）。</li>
       </ul>
     </div>
   `;
 }
 
-function pageImpl() {
+function pageFootprint() {
   const fp = getFootprint();
   return `
     <div class="hero">
       <h1 class="h1">系統實作（版本數位足跡）</h1>
-      <p class="lead">這一頁是你的「證據頁」：版本資訊、使用足跡、操作紀錄、可匯出 JSON。</p>
+      <p class="lead">
+        本頁記錄使用者在網站中的瀏覽與操作（本機 localStorage），可匯出 JSON 作為「版本數位足跡」證據。
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>一、版本資訊（meta）</h3>
+      <div class="small">（每次瀏覽/操作都會更新 savedAt）</div>
+      <pre style="white-space:pre-wrap;margin:10px 0 0;line-height:1.5">${escapeHtml(
+        JSON.stringify(fp.meta || {}, null, 2)
+      )}</pre>
     </div>
 
     <div class="grid cols-2">
       <div class="card">
-        <h3>版本資訊（Version / Build）</h3>
-        <div class="divider"></div>
-        <div class="small"><b>app</b>：${SITE_VERSION.app}</div>
-        <div class="small"><b>variant</b>：${SITE_VERSION.variant}</div>
-        <div class="small"><b>version</b>：${SITE_VERSION.version}</div>
-        <div class="small"><b>buildTime</b>：${SITE_VERSION.buildTime}</div>
-        <div class="small"><b>note</b>：${SITE_VERSION.note}</div>
-
-        <div class="divider"></div>
-        <h3>公開資料案例（電子業）</h3>
-        <ul>
-          <li>永續報告：2025 Sustainability Report（Samsung Electronics）</li>
-          <li>供應鏈治理：第三方稽核（RBA）與供應商行為準則</li>
-          <li>揭露標準：ISSB/IFRS S1/S2（2024 起適用）</li>
-        </ul>
+        <h3>二、Pageviews（瀏覽紀錄）</h3>
+        <div class="small">共 ${fp.pageviews?.length || 0} 筆</div>
+        <pre style="white-space:pre-wrap;margin:10px 0 0;line-height:1.5;max-height:320px;overflow:auto">${escapeHtml(
+          JSON.stringify(fp.pageviews || [], null, 2)
+        )}</pre>
       </div>
-
       <div class="card">
-        <h3>足跡（Footprint）</h3>
-        <p>只記錄在網站做了哪些操作（分頁切換/匯出/清除），不包含任何個資。</p>
-        <div class="divider"></div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-          <button class="btn" id="btnExport">匯出 JSON</button>
-          <button class="btn" id="btnClear">清除足跡</button>
-          <span class="badge">pageviews ${fp.pageviews.length}</span>
-          <span class="badge">actions ${fp.actions.length}</span>
-        </div>
-
-        <details open>
-          <summary>最近 pageviews（最多30筆）</summary>
-          <div style="max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:10px;margin-top:10px">
-            ${
-              fp.pageviews.length
-                ? fp.pageviews.slice(0, 30).map(
-                    (p) => `
-                <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-                  <div style="color:var(--text)">${p.path}</div>
-                  <div class="small">${p.at}</div>
-                </div>
-              `
-                  ).join("")
-                : `<div class="small">尚無紀錄。請切換幾個分頁後再回來看。</div>`
-            }
-          </div>
-        </details>
-
-        <div style="height:10px"></div>
-
-        <details>
-          <summary>最近 actions（最多30筆）</summary>
-          <div style="max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:10px;margin-top:10px">
-            ${
-              fp.actions.length
-                ? fp.actions.slice(0, 30).map(
-                    (a) => `
-                <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-                  <div style="color:var(--text)">${a.type}</div>
-                  <div class="small">${a.at}</div>
-                </div>
-              `
-                  ).join("")
-                : `<div class="small">尚無操作紀錄。</div>`
-            }
-          </div>
-        </details>
+        <h3>三、Actions（操作紀錄）</h3>
+        <div class="small">共 ${fp.actions?.length || 0} 筆</div>
+        <pre style="white-space:pre-wrap;margin:10px 0 0;line-height:1.5;max-height:320px;overflow:auto">${escapeHtml(
+          JSON.stringify(fp.actions || [], null, 2)
+        )}</pre>
       </div>
     </div>
 
-    ${sourcesBlock()}
+    <div class="card">
+      <h3>四、匯出/清除</h3>
+      <button class="btn primary" id="btnExport">下載 footprint.json</button>
+      <button class="btn" id="btnClear" style="margin-left:8px">清除足跡</button>
+      <div class="small" style="margin-top:10px">
+        匯出內容包含 <code>meta</code>、<code>pageviews</code>、<code>actions</code>，可作為版本數位足跡佐證。
+      </div>
+    </div>
   `;
 }
 
-/* ========== Router ========== */
-function render(page) {
-  const pages = { home: pageHome, req: pageReq, ana: pageAna, spec: pageSpec, impl: pageImpl };
-  (VIEW.innerHTML = (pages[page] ? pages[page]() : pageHome()));
+/* ==================== Router / Render ==================== */
+const PAGES = {
+  home: pageHome,
+  req: pageReq,
+  ana: pageAna,
+  spec: pageSpec,
+  fp: pageFootprint,
+};
 
-  trackPage(page);
+function render(pageKey) {
+  const root = $("#root");
+  if (!root) {
+    // 你若看到這段，表示 index.html 少了 <div id="root"></div>
+    document.body.innerHTML = `<div style="padding:20px;font-family:system-ui">Missing <b>#root</b> in index.html</div>`;
+    return;
+  }
 
-  // bind (impl only)
-  const ex = $("#btnExport");
-  const cl = $("#btnClear");
-  if (ex) ex.onclick = () => { trackAction("export_json"); exportFootprint(); };
-  if (cl) cl.onclick = () => { trackAction("clear_footprint"); clearFootprint(); render("impl"); };
+  const key = PAGES[pageKey] ? pageKey : "home";
+  root.innerHTML = shell(key);
 
-  [...NAV.querySelectorAll("button")].forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.page === page);
+  const pageEl = $("#page");
+  pageEl.innerHTML = PAGES[key]();
+
+  // 綁定 nav
+  document.querySelectorAll("[data-nav]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const k = btn.getAttribute("data-nav");
+      trackAction("navigate", k);
+      location.hash = `#${k}`;
+      render(k);
+    });
   });
+
+  // 足跡頁按鈕
+  if (key === "fp") {
+    const exportBtn = $("#btnExport");
+    const clearBtn = $("#btnClear");
+    exportBtn?.addEventListener("click", () => {
+      trackAction("export", "footprint.json");
+      downloadJSON("footprint.json", getFootprint());
+    });
+    clearBtn?.addEventListener("click", () => {
+      trackAction("clear", "footprint");
+      localStorage.removeItem(FP_KEY);
+      render("fp");
+    });
+  }
+
+  trackPageView(key);
 }
 
-NAV.addEventListener("click", (e) => {
-  const btn = e.target.closest("button");
-  if (!btn) return;
-  const page = btn.dataset.page;
-  trackAction("nav_click", { page });
-  render(page);
-});
+/* ==================== Boot ==================== */
+(function boot() {
+  injectStyles();
 
-render("home");
+  const keyFromHash = (location.hash || "").replace("#", "").trim();
+  const start = PAGES[keyFromHash] ? keyFromHash : "home";
+  render(start);
+
+  window.addEventListener("hashchange", () => {
+    const k = (location.hash || "").replace("#", "").trim();
+    render(k);
+  });
+})();
