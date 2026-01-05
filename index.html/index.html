@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>電子業 ESG 發展趨勢｜永續經營形象網站</title>
   </head>
-  <body>
+
+  <body style="font-family:sans-serif;padding:24px">
+    <!-- ✅ 保底文字：就算 JS 沒跑也一定看得到 -->
+    <h1>如果你看到這行字，代表 index.html 有載入 ✅</h1>
+    <p>接下來應該會自動載入 main.js 並顯示完整網站。</p >
+
     <div id="root"></div>
-    <!-- ✅ 重要：改成載入 JS，不載入 TSX -->
-    <script type="module" src="./src/main.js"></script>
+
+    <!-- ✅ 關鍵：用「絕對路徑」避免相對路徑踩雷 -->
+    <script type="module" src="/esg-electronics-site/src/main.js"></script>
   </body>
 </html>
