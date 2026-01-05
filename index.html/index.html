@@ -3,10 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>ESG Site Test</title>
+    <title>電子業 ESG 發展趨勢｜永續經營形象網站</title>
   </head>
   <body style="font-family:sans-serif;padding:24px">
-    <h1>✅ 我看到這行字了（GitHub Pages 正常）</h1>
-    <p>如果你看到這行，代表 index.html 已部署成功。</p >
+    <!-- 保底文字：確保不會再全白 -->
+    <h1 id="fallback">載入中…（如果 JS 失敗，至少會看到這行）</h1>
+
+    <div id="root"></div>
+
+    <!-- 用「絕對路徑」載入 JS（最穩） -->
+    <script type="module" src="/esg-electronics-site/src/main.js"></script>
   </body>
 </html>
