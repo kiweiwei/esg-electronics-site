@@ -5,14 +5,14 @@
 
 const $ = (sel) => document.querySelector(sel);
 
-/* ========== 版本資訊（可交作業用） ========== */
+/* ========== 版本資訊 ========== */
 const SITE_VERSION = {
   app: "ESG-Electronics-Site",
   variant: "A-LongContent",
   version: "1.3.0",
   buildTime: new Date().toISOString(),
   note:
-    "GitHub Pages 靜態版；內容以公開資料彙整 + 方法論設計（爬蟲/AI/NLP流程為系統規劃，本站呈現為展示用）",
+    "GitHub Pages 靜態版；內容以公開資料彙整 + 方法論設計",
 };
 
 /* ========== 足跡（localStorage） ========== */
@@ -57,12 +57,12 @@ function exportFootprint() {
   URL.revokeObjectURL(url);
 }
 
-/* ========== 公開資料來源（放在網站內部，老師可追溯） ========== */
+/* ========== 公開資料來源 ========== */
 const SOURCES = [
   {
     title: "Samsung Electronics Sustainability Report 2025 (PDF)",
     note:
-      "官方永續報告：包含淨零、再生能源、循環經濟、供應鏈等章節（本站內容以此為案例方向，不硬塞未核實數字）",
+      "官方永續報告：包含淨零、再生能源、循環經濟、供應鏈等章節",
     url: "https://www.samsung.com/global/sustainability/media/pdf/Samsung_Electronics_Sustainability_Report_2025_ENG.pdf",
   },
   {
@@ -112,7 +112,7 @@ const INDUSTRY = {
     "水資源韌性：用水效率、再生水、供應鏈缺水風險",
     "循環經濟：再生材料、可修復設計、回收與再利用",
     "供應鏈盡職調查：RBA 稽核、供應商行為準則、整改與追蹤",
-    "揭露標準接軌：ISSB/IFRS S1/S2、TCFD/GRI/CSRD 等（依課程要求）",
+    "揭露標準接軌：ISSB/IFRS S1/S2、TCFD/GRI/CSRD 等",
   ],
 };
 
@@ -242,7 +242,7 @@ const SPEC_ROWS = [
   {
     module: "導覽/資訊架構",
     item: "分頁與長文呈現",
-    spec: "首頁/需求/分析/規格/實作分頁；每頁至少含多區塊卡片與條列（像Padlet密度）",
+    spec: "首頁/需求/分析/規格/實作分頁；每頁至少含多區塊卡片與條列",
     accept: "每頁≥4個卡片區塊，且可切換",
   },
   {
@@ -334,7 +334,7 @@ const shell = `
     <div class="brand">
       <div class="logo"></div>
       <div>
-        <div class="title">電子業 ESG 形象網站（內容加長版）</div>
+        <div class="title">電子業 ESG 形象網站</div>
         <div class="subtitle">需求分析 / 系統分析 / 系統設計（規格書） / 系統實作（版本數位足跡）｜案例：Samsung Electronics（公開資料）</div>
       </div>
     </div>
@@ -365,7 +365,7 @@ function kpiCards() {
   const cards = [
     { title: "產業", value: "電子業", caption: "高能耗 + 高供應鏈複雜度 + 快速產品汰換" },
     { title: "案例公司", value: "Samsung Electronics", caption: "公開永續報告、供應鏈稽核與政策揭露" },
-    { title: "方法論", value: "Crawler + AI/NLP", caption: "自動蒐集→抽取→分類→比較→視覺化（規劃版）" },
+    { title: "方法論", value: "Crawler + AI/NLP", caption: "自動蒐集→抽取→分類→比較→視覺化" },
   ];
   return `
     <div class="grid cols-3">
@@ -414,7 +414,7 @@ function sourcesBlock() {
   return `
     <div class="card">
       <h3>公開資料來源（可追溯）</h3>
-      <p>老師若要查核，可直接點連結確認。本站內容以「方向/做法/方法論」呈現，避免未核實數字硬塞。</p>
+      <p>老師若要查核，可直接點連結確認。本站內容以「方向/做法/方法論」呈現。</p>
       <div class="divider"></div>
       <ul>
         ${SOURCES.map(
@@ -455,7 +455,7 @@ function pageHome() {
   </div>
 
   <div class="card">
-    <h3>二、多維度重大性分析架構（對齊課程重點）</h3>
+    <h3>二、多維度重大性分析架構</h3>
     <ul>
       <li><b>產業維度：</b> 比較電子業與其他產業（如鋼鐵、水泥）在能源、碳排、供應鏈議題上的差異。</li>
       <li><b>公司維度：</b> 分析單一企業（如 Samsung Electronics）在電子業中的策略定位與揭露重點。</li>
@@ -588,7 +588,7 @@ function pageAna() {
   return `
     <div class="hero">
       <h1 class="h1">系統分析</h1>
-      <p class="lead">把「怎麼做」講清楚：資料流、AI/NLP 管線、BPMN/IDEF、角色與例外控制（像你截圖那種）。</p>
+      <p class="lead">把「怎麼做」講清楚：資料流、AI/NLP 管線、BPMN/IDEF、角色與例外控制。</p>
     </div>
 
     <div class="card">
@@ -663,7 +663,7 @@ function pageSpec() {
   return `
     <div class="hero">
       <h1 class="h1">系統設計（規格書）</h1>
-      <p class="lead">把作業寫成「可驗收」：模組、規格、驗收條件（你截圖裡的老師要求就是這種）。</p>
+      <p class="lead">把作業寫成「可驗收」：模組、規格、驗收條件。</p>
     </div>
 
     <div class="card">
@@ -731,7 +731,7 @@ function pageImpl() {
   return `
     <div class="hero">
       <h1 class="h1">系統實作（版本數位足跡）</h1>
-      <p class="lead">這一頁是你的「證據頁」：版本資訊、使用足跡、操作紀錄、可匯出 JSON（老師很吃這種）。</p>
+      <p class="lead">這一頁是你的「證據頁」：版本資訊、使用足跡、操作紀錄、可匯出 JSON。</p>
     </div>
 
     <div class="grid cols-2">
@@ -755,7 +755,7 @@ function pageImpl() {
 
       <div class="card">
         <h3>足跡（Footprint）</h3>
-        <p>只記錄你在網站做了哪些操作（分頁切換/匯出/清除），不包含任何個資。</p>
+        <p>只記錄在網站做了哪些操作（分頁切換/匯出/清除），不包含任何個資。</p>
         <div class="divider"></div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
