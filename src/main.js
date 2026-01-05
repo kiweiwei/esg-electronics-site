@@ -434,45 +434,87 @@ function sourcesBlock() {
 /* ========== Pages ========== */
 function pageHome() {
   return `
-    <div class="hero">
-      <h1 class="h1">像 Padlet 那樣的「多」：電子業 ESG 多維度洞察 + AI/NLP 系統化流程</h1>
-      <p class="lead">維持你原本喜歡的介面，但把內容升級成「期末作業規劃書」密度：洞察清單、流程分解、角色設計、例外處理、資料 schema、規格書與可驗收條件。</p>
-    </div>
+  <div class="hero">
+    <h1 class="h1">電子業 ESG 重大性分析（Materiality Analysis）</h1>
+    <p class="lead">
+      本研究以「電子業」為產業背景，結合企業公開 ESG 永續資料，
+      建立一套可支援多維度洞察與決策的重大性分析架構。
+      分析不僅著眼於單一公司，而是從產業、公司、年度、指標、法規與外部評等等層面進行整合。
+    </p >
+  </div>
 
-    ${kpiCards()}
+  ${kpiCards()}
 
-    <div style="height:14px"></div>
+  <div class="card">
+    <h3>一、重大性分析目的與核心問題</h3>
+    <ul>
+      <li>電子業在高能耗、高供應鏈複雜度下，哪些 ESG 議題對企業營運與利害關係人最關鍵？</li>
+      <li>不同分析維度（產業、公司、年度、指標）下，重大性排序是否一致？</li>
+      <li>ESG 議題如何支援管理決策、投資評估與永續策略制定？</li>
+    </ul>
+  </div>
 
-    <div class="grid cols-2">
-      <div class="card">
-        <h3>電子業常見風險（Why ESG matters here）</h3>
-        <ul>${INDUSTRY.typicalRisks.map((x) => `<li>${x}</li>`).join("")}</ul>
-      </div>
-      <div class="card">
-        <h3>產業趨勢（What’s trending）</h3>
-        <ul>${INDUSTRY.typicalTrends.map((x) => `<li>${x}</li>`).join("")}</ul>
-      </div>
-    </div>
+  <div class="card">
+    <h3>二、多維度重大性分析架構（對齊課程重點）</h3>
+    <ul>
+      <li><b>產業維度：</b> 比較電子業與其他產業（如鋼鐵、水泥）在能源、碳排、供應鏈議題上的差異。</li>
+      <li><b>公司維度：</b> 分析單一企業（如 Samsung Electronics）在電子業中的策略定位與揭露重點。</li>
+      <li><b>年度維度：</b> 追蹤企業歷年 ESG 目標、承諾與執行進度之變化。</li>
+      <li><b>指標維度：</b> 對齊 GRI、SDGs、ISSB（IFRS S1/S2）等國際揭露框架。</li>
+      <li><b>法規與市場維度：</b> 納入新法規（ISSB、CSRD）與投資人 / ESG rating 關注焦點。</li>
+    </ul>
+  </div>
 
-    <div style="height:14px"></div>
+  <div class="card">
+    <h3>三、電子業重大性議題辨識（示意）</h3>
+    <p>
+      重大性評估以「企業衝擊程度（Impact）」與「利害關係人關注度（Concern）」為雙軸，
+      辨識電子業常見的關鍵 ESG 議題。
+    </p >
+    <ul>
+      ${MATERIALITY.map(
+        m => `
+        <li>
+          <b>${m.name}</b>
+          <span class="small">（${m.cat}｜Impact ${m.impact} × Concern ${m.concern}）</span>
+        </li>
+      `
+      ).join("")}
+    </ul>
+  </div>
 
-    ${materialityList()}
+  <div class="card">
+    <h3>四、重大性成熟度分級與差距分析</h3>
+    <ul>
+      <li><b>領先（Leader）：</b> 已具備明確量化目標、年度追蹤與第三方驗證。</li>
+      <li><b>成長（Follower）：</b> 已揭露政策與方向，但量化與追蹤機制仍在建立中。</li>
+      <li><b>起步（Starter）：</b> 僅定性揭露，尚未形成系統化管理。</li>
+      <li>透過分級可比較不同公司或年度間 ESG 成熟度差距及其原因。</li>
+    </ul>
+  </div>
 
-    <div style="height:14px"></div>
+  <div class="card">
+    <h3>五、AI / NLP 輔助重大性分析（系統規劃）</h3>
+    <ul>
+      <li>自動蒐集 ESG 永續報告（PDF / 官網 / 新聞稿）。</li>
+      <li>以 NLP 抽取 ESG 關鍵字、指標與目標承諾。</li>
+      <li>依 E / S / G 與主題（淨零、供應鏈、資安等）進行分類。</li>
+      <li>支援跨公司、跨年度、跨指標的重大性比較與趨勢洞察。</li>
+    </ul>
+  </div>
 
-    <div class="card">
-      <h3>多維度洞察（像你截圖那樣）</h3>
-      <p>以下是「可以拿來做研究/作業分析」的洞察方向清單（可擴充成圖表或比較表）。</p>
-      <div class="divider"></div>
-      <ul>${MULTI_DIM_INSIGHTS.map((x) => `<li>${x}</li>`).join("")}</ul>
-    </div>
+  <div class="card">
+    <h3>六、分析結果應用情境</h3>
+    <ul>
+      <li><b>管理決策：</b> 協助企業聚焦最具影響力的 ESG 議題與資源配置。</li>
+      <li><b>投資分析：</b> 支援投資人理解企業永續風險與長期價值。</li>
+      <li><b>研究與教學：</b> 作為產業 ESG 發展趨勢與案例分析之基礎。</li>
+    </ul>
+  </div>
 
-    <div style="height:14px"></div>
-
-    ${sourcesBlock()}
+  ${sourcesBlock()}
   `;
 }
-
 function pageReq() {
   return `
     <div class="hero">
