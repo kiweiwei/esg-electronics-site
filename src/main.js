@@ -436,7 +436,7 @@ function pageReq() {
   `;
 }
 
-function pageAna() {
+function pageAnalysis() {
   return `
     <div class="hero">
       <h1 class="h1">系統分析（System Analysis）</h1>
@@ -683,7 +683,7 @@ function pageFootprint() {
 const PAGES = {
   home: pageHome,
   req: pageReq,
-  ana: pageAna,
+  ana: pageAnalysis,
   spec: pageSpec,
   fp: pageFootprint,
 };
