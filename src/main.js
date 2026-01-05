@@ -432,87 +432,148 @@ function sourcesBlock() {
 }
 
 /* ========== Pages ========== */
-function pageHome() {
+function pageAna() {
   return `
-  <div class="hero">
-    <h1 class="h1">電子業 ESG 重大性分析（Materiality Analysis）</h1>
-    <p class="lead">
-      本研究以「電子業」為產業背景，結合企業公開 ESG 永續資料，
-      建立一套可支援多維度洞察與決策的重大性分析架構。
-      分析不僅著眼於單一公司，而是從產業、公司、年度、指標、法規與外部評等等層面進行整合。
-    </p >
-  </div>
+    <div class="hero">
+      <h1 class="h1">系統分析（System Analysis）</h1>
+      <p class="lead">
+        依課程要求：以「自動化蒐集 + AI/NLP 結構化 + 多維度比較 + 視覺化展示」為核心，
+        以文字版 BPMN/IDEF（流程分解、角色設計、資料流、控制/例外）完成系統分析。
+      </p >
+    </div>
 
-  ${kpiCards()}
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>一、系統目標（輸入/處理/輸出）</h3>
+        <ul>
+          <li><b>輸入（Input）：</b> 企業公開 ESG 永續報告（PDF/HTML/Word）、官方新聞稿、政策頁面、供應鏈稽核/準則文件。</li>
+          <li><b>處理（Process）：</b> 解析抽取 → AI/NLP 分類/標籤 → 指標對齊（GRI/SDGs/ISSB）→ 比較分析（公司/產業/年度）→ 產生洞察。</li>
+          <li><b>輸出（Output）：</b> 網站（重大性分析+洞察+流程+規格）＋ 可匯出 JSON（版本數位足跡/分析結果格式）。</li>
+        </ul>
+      </div>
 
-  <div class="card">
-    <h3>一、重大性分析目的與核心問題</h3>
-    <ul>
-      <li>電子業在高能耗、高供應鏈複雜度下，哪些 ESG 議題對企業營運與利害關係人最關鍵？</li>
-      <li>不同分析維度（產業、公司、年度、指標）下，重大性排序是否一致？</li>
-      <li>ESG 議題如何支援管理決策、投資評估與永續策略制定？</li>
-    </ul>
-  </div>
+      <div class="card">
+        <h3>二、核心價值（為什麼要做系統）</h3>
+        <ul>
+          <li>ESG 報告多為非結構化文本，人工閱讀成本高、比較困難。</li>
+          <li>需要「可追溯」與「可重複」的抽取與分類流程，支援跨年度、跨公司比較。</li>
+          <li>對齊 ISSB/IFRS S1/S2 等標準，有助於把揭露要求轉成可檢核的資訊欄位。</li>
+        </ul>
+      </div>
+    </div>
 
-  <div class="card">
-    <h3>二、多維度重大性分析架構</h3>
-    <ul>
-      <li><b>產業維度：</b> 比較電子業與其他產業（如鋼鐵、水泥）在能源、碳排、供應鏈議題上的差異。</li>
-      <li><b>公司維度：</b> 分析單一企業（如 Samsung Electronics）在電子業中的策略定位與揭露重點。</li>
-      <li><b>年度維度：</b> 追蹤企業歷年 ESG 目標、承諾與執行進度之變化。</li>
-      <li><b>指標維度：</b> 對齊 GRI、SDGs、ISSB（IFRS S1/S2）等國際揭露框架。</li>
-      <li><b>法規與市場維度：</b> 納入新法規（ISSB、CSRD）與投資人 / ESG rating 關注焦點。</li>
-    </ul>
-  </div>
+    <div class="card">
+      <h3>三、BPMN / IDEF（文字版）流程分解（Main Flow）</h3>
+      <div class="divider"></div>
 
-  <div class="card">
-    <h3>三、電子業重大性議題辨識（示意）</h3>
-    <p>
-      重大性評估以「企業衝擊程度（Impact）」與「利害關係人關注度（Concern）」為雙軸，
-      辨識電子業常見的關鍵 ESG 議題。
-    </p >
-    <ul>
-      ${MATERIALITY.map(
-        m => `
-        <li>
-          <b>${m.name}</b>
-          <span class="small">（${m.cat}｜Impact ${m.impact} × Concern ${m.concern}）</span>
-        </li>
-      `
-      ).join("")}
-    </ul>
-  </div>
+      <details open>
+        <summary>Step 1：資料蒐集（Crawler / Connector）</summary>
+        <ul>
+          <li>建立「來源清單」（公司官網永續頁、報告PDF、新聞稿、政策文件）。</li>
+          <li>定期檢查更新（按年度/季度），保存原始檔與來源 URL（可追溯）。</li>
+          <li>輸出：Raw 資料庫（PDF/HTML）＋ metadata（公司/年度/來源/下載時間）。</li>
+        </ul>
+      </details>
 
-  <div class="card">
-    <h3>四、重大性成熟度分級與差距分析</h3>
-    <ul>
-      <li><b>領先（Leader）：</b> 已具備明確量化目標、年度追蹤與第三方驗證。</li>
-      <li><b>成長（Follower）：</b> 已揭露政策與方向，但量化與追蹤機制仍在建立中。</li>
-      <li><b>起步（Starter）：</b> 僅定性揭露，尚未形成系統化管理。</li>
-      <li>透過分級可比較不同公司或年度間 ESG 成熟度差距及其原因。</li>
-    </ul>
-  </div>
+      <div style="height:10px"></div>
 
-  <div class="card">
-    <h3>五、AI / NLP 輔助重大性分析（系統規劃）</h3>
-    <ul>
-      <li>自動蒐集 ESG 永續報告（PDF / 官網 / 新聞稿）。</li>
-      <li>以 NLP 抽取 ESG 關鍵字、指標與目標承諾。</li>
-      <li>依 E / S / G 與主題（淨零、供應鏈、資安等）進行分類。</li>
-      <li>支援跨公司、跨年度、跨指標的重大性比較與趨勢洞察。</li>
-    </ul>
-  </div>
+      <details>
+        <summary>Step 2：解析抽取（Parser / Table Extraction）</summary>
+        <ul>
+          <li>PDF 文字抽取、章節定位、表格與圖表說明抓取。</li>
+          <li>抽取目標：ESG 目標承諾、KPI 指標、措施、風險與治理描述。</li>
+          <li>輸出：Parsed 文本 + 表格結構。</li>
+        </ul>
+      </details>
 
-  <div class="card">
-    <h3>六、分析結果應用情境</h3>
-    <ul>
-      <li><b>管理決策：</b> 協助企業聚焦最具影響力的 ESG 議題與資源配置。</li>
-      <li><b>投資分析：</b> 支援投資人理解企業永續風險與長期價值。</li>
-      <li><b>研究與教學：</b> 作為產業 ESG 發展趨勢與案例分析之基礎。</li>
-    </ul>
-  </div>
+      <div style="height:10px"></div>
 
-  ${sourcesBlock()}
+      <details>
+        <summary>Step 3：AI/NLP 結構化（Classification / Tagging）</summary>
+        <ul>
+          <li>分類：E/S/G、主題標籤（淨零/綠電/水資源/循環/供應鏈/資安/人權/職安/治理）。</li>
+          <li>抽取：KPI 名稱、目標、時間範圍、進度描述、區域/事業部。</li>
+        </ul>
+      </details>
+
+      <div style="height:10px"></div>
+
+      <details>
+        <summary>Step 4：對齊標準（GRI / SDGs / ISSB 對照）</summary>
+        <ul>
+          <li>建立 mapping 表：主題標籤 ↔ 指標框架（GRI、SDGs、ISSB）。</li>
+          <li>輸出：每則資訊包含「標準對應欄位」與「證據片段」以利查核。</li>
+        </ul>
+      </details>
+
+      <div style="height:10px"></div>
+
+      <details>
+        <summary>Step 5：多維度比較分析（Industry / Company / Year / Indicator）</summary>
+        <ul>
+          <li>產業比較：電子 vs 其他產業。</li>
+          <li>公司比較：同產業企業之揭露深度、策略差異。</li>
+          <li>年度追蹤：目標與進度的變化（趨勢/落差/原因）。</li>
+          <li>輸出：洞察摘要、材料性排序、成熟度分級結果。</li>
+        </ul>
+      </details>
+
+      <div style="height:10px"></div>
+
+      <details>
+        <summary>Step 6：視覺化與展示（Website / Dashboard）</summary>
+        <ul>
+          <li>以形象網站呈現：重大性分析、多維洞察、流程/規格、資料來源。</li>
+          <li>提供匯出：足跡 JSON。</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>四、角色設計（Actors / Responsibilities）</h3>
+        <ul>
+          <li><b>資料管理者：</b> 維護來源清單、下載規則、版本控管。</li>
+          <li><b>分析者：</b> 定義標籤、對齊標準、抽樣驗證結果。</li>
+          <li><b>使用者：</b> 瀏覽洞察、檢視來源、下載匯出檔。</li>
+          <li><b>系統：</b> 排程、解析、分類、比對、輸出。</li>
+        </ul>
+
+        <div class="divider"></div>
+        <h3>五、控制與例外（Controls / Exceptions）</h3>
+        <ul>
+          <li>下載失敗：重試、改用備援來源、記錄錯誤碼。</li>
+          <li>解析失敗：OCR fallback / 或標記人工校正。</li>
+          <li>分類不確定：信心分數低→進入人工複核清單。</li>
+          <li>資料衝突：保留原文片段 + 欄位優先序規則。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>六、分析維度矩陣</h3>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th style="width:160px">維度</th><th>內容</th><th>可產出洞察</th></tr></thead>
+          <tbody>
+            <tr><td>產業（Industry）</td><td>電子業特性：能耗、供應鏈、電子廢棄物、資安</td><td>與其他產業的差異與關鍵風險</td></tr>
+            <tr><td>公司（Company）</td><td>公開報告揭露策略、政策、目標與措施</td><td>企業定位、策略差異、揭露完整度</td></tr>
+            <tr><td>年度（Year）</td><td>同公司跨年度目標/進度/成效</td><td>趨勢追蹤、落差原因、成熟度變化</td></tr>
+            <tr><td>指標（Indicator）</td><td>GRI/SDGs/ISSB 對照</td><td>揭露一致性、缺口分析、可比性提升</td></tr>
+            <tr><td>法規/市場</td><td>ISSB/CSRD/投資人關注與ESG評等</td><td>合規風險、回應策略、溝通重點</td></tr>
+          </tbody>
+        </table>
+
+        <div class="divider"></div>
+        <h3>七、資料治理（Data Governance）</h3>
+        <ul>
+          <li>可追溯：每筆結構化資訊保留 source_url + evidence_snippet。</li>
+          <li>版本控管：來源檔 hash、下載時間、解析版本。</li>
+          <li>品質控管：抽樣複核、錯誤回饋、標籤一致性檢查。</li>
+        </ul>
+      </div>
+    </div>
+
+    ${sourcesBlock()}
   `;
 }
 function pageReq() {
@@ -662,12 +723,38 @@ function pageAna() {
 function pageSpec() {
   return `
     <div class="hero">
-      <h1 class="h1">系統設計（規格書）</h1>
-      <p class="lead">把作業寫成「可驗收」：模組、規格、驗收條件。</p>
+      <h1 class="h1">系統設計（規格書｜Spec）</h1>
+      <p class="lead">
+        本規格書以「可驗收」為核心：每個模組都定義輸入/輸出、規格、驗收條件、測試案例與品質要求，
+        對齊期末考：需求分析、系統分析、系統設計、系統實作。
+      </p >
     </div>
 
     <div class="card">
-      <h3>功能規格表（Functional Spec）</h3>
+      <h3>一、系統模組清單（Modules）</h3>
+      <ul>
+        <li><b>M1：重大性分析展示</b>（多維度架構 + 材料性議題清單 + 成熟度分級）</li>
+        <li><b>M2：產業/公司/年度/指標維度說明</b>（維度矩陣 + 可產出洞察）</li>
+        <li><b>M3：AI/NLP 流程展示</b>（Pipeline + BPMN/IDEF 文字版）</li>
+        <li><b>M4：可追溯來源</b>（公開資料來源連結 + 說明）</li>
+        <li><b>M5：版本數位足跡</b>（pageviews/actions + JSON 匯出）</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>二、資料規格（Data Spec：最小可用 Schema）</h3>
+      <p>用於「從公開報告 → 結構化」的資料欄位定義。</p >
+      <div class="divider"></div>
+      <table class="table">
+        <thead><tr><th style="width:160px">欄位</th><th style="width:110px">型別</th><th>說明</th></tr></thead>
+        <tbody>
+          ${DATA_SCHEMA.map((r) => `<tr><td>${r.field}</td><td>${r.type}</td><td>${r.desc}</td></tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>三、功能規格與驗收（Functional Spec & Acceptance）</h3>
       <div class="divider"></div>
       <table class="table">
         <thead>
@@ -689,38 +776,53 @@ function pageSpec() {
             </tr>
           `
           ).join("")}
+          <tr>
+            <td>分析內容</td>
+            <td>重大性分析多維度</td>
+            <td>頁面需明確呈現：產業/公司/年度/指標/法規/外部評等之分析架構與應用</td>
+            <td>至少 5 個維度皆有具體條列與用途</td>
+          </tr>
+          <tr>
+            <td>流程設計</td>
+            <td>IDEF/UML/BPMN（文字版）</td>
+            <td>流程分解需包含：步驟、輸入/輸出、角色、控制/例外</td>
+            <td>4 個流程區塊以上（含例外）</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
     <div class="grid cols-2">
       <div class="card">
-        <h3>測試案例（Test Cases）</h3>
+        <h3>四、測試案例（Test Cases）</h3>
         <ul>
-          <li>TC-01：切換五個分頁，內容皆非空白，且至少各有 4 區塊。</li>
-          <li>TC-02：版本足跡頁匯出 JSON，檔案含 meta/pageviews/actions。</li>
-          <li>TC-03：來源清單可點開（新分頁），至少 4 條。</li>
-          <li>TC-04：行動流程（Pipeline/BPMN）可展開閱讀。</li>
+          <li><b>TC-01</b>：分頁切換正常；每頁至少 4 個內容區塊。</li>
+          <li><b>TC-02</b>：來源連結可開啟；來源條目 ≥ 4。</li>
+          <li><b>TC-03</b>：足跡頁可匯出 JSON，且檔內含 meta/pageviews/actions。</li>
+          <li><b>TC-04</b>：清除足跡後，pageviews/actions 重新計數。</li>
+          <li><b>TC-05</b>：Pipeline/BPMN 區塊可展開閱讀。</li>
         </ul>
       </div>
+
       <div class="card">
-        <h3>安全與隱私（Privacy）</h3>
+        <h3>五、系統品質（Quality）</h3>
         <ul>
-          <li>本站不收集個資；足跡只存於本機 localStorage。</li>
-          <li>若未來接後端：需新增同意機制、資料最小化、保存期限。</li>
-          <li>若爬蟲擴充：需遵守網站 robots/條款，並保存來源證據。</li>
+          <li><b>可讀性：</b> 條列清楚、段落分區、手機可閱讀。</li>
+          <li><b>可追溯性：</b> 重要敘述對應公開來源連結。</li>
+          <li><b>一致性：</b> 標籤（E/S/G、主題）使用一致字彙。</li>
+          <li><b>可維護性：</b> 內容以資料物件集中管理，後續新增公司/產業方便。</li>
+          <li><b>隱私：</b> 足跡只存本機，不含個資。</li>
         </ul>
       </div>
     </div>
 
     <div class="card">
-      <h3>資訊架構（IA）對照</h3>
+      <h3>六、延伸功能</h3>
       <ul>
-        <li>首頁：產業趨勢 + 材料性 + 多維洞察 + 來源</li>
-        <li>需求分析：目標/需求/交付物</li>
-        <li>系統分析：流程/角色/例外/標準/資料schema</li>
-        <li>規格書：驗收條件與測試案例</li>
-        <li>實作：版本足跡 + JSON 匯出（證據）</li>
+        <li>支援多公司切換（Samsung / TSMC / Intel）並做 benchmark。</li>
+        <li>把重大性矩陣做成互動散點圖（Impact × Concern）。</li>
+        <li>加入「外部評等」欄位（ESG rating / 永續指數）做比較視覺化。</li>
+        <li>加入「法規對照表」：ISSB S1/S2 → 站內欄位 → 證據片段。</li>
       </ul>
     </div>
   `;
